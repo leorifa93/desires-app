@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLAZR Landing Page</title>
+    <style>
+      :root {
+        --bg-1: #0e1026;
+        --bg-2: #1b2453;
+        --accent: #7aa9ff;
+        --accent-2: #9d7aff;
+        --text: #eef2ff;
+        --muted: #b8c0ff;
+        --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        --panel: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.12);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        color: var(--text);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+        background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      /* Background Canvas */
+      #bgCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+      }
+      .bg-gradient {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(270deg, var(--bg-1), var(--bg-2), #141830);
+        background-size: 600% 600%;
+        animation: gradientMove 25s ease infinite;
+        z-index: -3;
+      }
+      @keyframes gradientMove {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Header */
+      header {
+        position: fixed;
+        inset: 0 0 auto 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background: rgba(14, 16, 38, 0.25);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        transition: background 0.3s ease;
+      }
+      header.scrolled {
+        background: rgba(14, 16, 38, 0.45);
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .logo img {
+        height: 32px;
+      }
+      nav {
+        display: flex;
+        align-items: center;
+      }
+      nav a {
+        margin-left: 20px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      nav a:hover {
+        color: var(--accent);
+      }
+      .burger {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--text);
+        font-size: 1.8rem;
+        cursor: pointer;
+      }
+      @media (max-width: 640px) {
+        nav {
+          display: none;
+        }
+        .burger {
+          display: block;
+        }
+      }
+
+      /* Mobile Menu */
+      .mobile-menu {
+        position: fixed;
+        inset: 0;
+        background: rgba(14, 16, 38, 0.95);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        transform: translateY(-100%);
+        transition: transform 0.35s ease;
+        z-index: 999;
+      }
+      .mobile-menu.open {
+        transform: translateY(0);
+      }
+      .mobile-menu a {
+        font-size: 1.5rem;
+        color: var(--text);
+      }
+      .mobile-menu a:hover {
+        color: var(--accent);
+      }
+
+      /* Sections */
+      section {
+        min-height: 100svh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: clamp(32px, 6vw, 72px) 20px;
+        position: relative;
+      }
+      .parallax-layer {
+        position: absolute;
+        inset: 0;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        will-change: transform;
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-bg {
+        background-color: #1b2453;
+        background-image: url('https://static.wixstatic.com/media/1bfb9d_d065d4bfc3c242b19666581ee9474739~mv2.png');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.9);
+        min-height: 120%;
+      }
+      .hero-gradient {
+        background: linear-gradient(
+          180deg,
+          rgba(14, 16, 38, 0.4),
+          rgba(27, 36, 83, 0.85)
+        );
+        min-height: 120%;
+      }
+
+      .hero .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1000px;
+        background: linear-gradient(
+          to bottom right,
+          rgba(20, 24, 48, 0.95),
+          rgba(27, 36, 83, 0.95)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: clamp(28px, 5vw, 48px);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+      }
+      .hero h1 {
+        margin: 0 0 0.3em;
+        line-height: 1.1;
+        font-size: clamp(28px, 5vw, 56px);
+        background: linear-gradient(90deg, var(--text), var(--muted));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero h2 {
+        font-size: clamp(16px, 2.2vw, 22px);
+        font-weight: 400;
+        color: var(--muted);
+        margin: 0 0 1em;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--accent-2), var(--accent));
+        color: #0e1026;
+        box-shadow: 0 10px 24px rgba(122, 169, 255, 0.25);
+        transition: transform 0.35s, box-shadow 0.35s;
+      }
+      .cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 36px rgba(122, 169, 255, 0.35);
+      }
+
+      /* Panel */
+      .panel {
+        width: min(1100px, 92vw);
+        text-align: left;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: clamp(22px, 4vw, 36px);
+        box-shadow: var(--shadow);
+      }
+
+      /* Card Grid */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        margin-top: 20px;
+        text-align: left;
+      }
+      .step-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+      }
+      .icon-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-2), var(--accent));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-size: 26px;
+        color: #0e1026;
+      }
+      .step-card h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        color: var(--text);
+      }
+      .step-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* WHY section */
+      .why {
+        background: radial-gradient(
+            800px 500px at 15% 0%,
+            rgba(157, 122, 255, 0.25),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 600px at 85% 20%,
+            rgba(122, 169, 255, 0.22),
+            transparent 60%
+          );
+      }
+      .why .headline {
+        text-align: center;
+        margin: 0 auto 18px;
+        max-width: 900px;
+      }
+      .why .headline h2 {
+        margin: 0 0 10px;
+        font-size: clamp(24px, 3.2vw, 36px);
+      }
+      .why .headline p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      /* KPIs */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-top: 22px;
+      }
+      .kpi {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+      }
+      .kpi .num {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .kpi .label {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-top: 6px;
+      }
+
+      /* Contact form */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      input,
+      textarea {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-size: 1rem;
+      }
+      button {
+        background: linear-gradient(90deg, var(--accent-2), var(--accent));
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        color: #0e1026;
+      }
+
+      /* Footer */
+      footer {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        text-align: center;
+        padding: 44px 20px;
+      }
+
+      /* Reveal Animations */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: transform 0.7s, opacity 0.6s;
+      }
+      .reveal.in-view {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .stagger > * {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      .stagger.in-view > * {
+        opacity: 1;
+        transform: translateY(0);
+        transition: transform 0.6s, opacity 0.5s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-gradient"></div>
+    <canvas id="bgCanvas"></canvas>
+
+    <header id="header">
+      <div class="logo">
+        <img
+          src="https://static.wixstatic.com/media/1bfb9d_ee67ec05ef0f41c39afbe15ae39e3dab~mv2.png" />
+        PLAZR
+      </div>
+      <nav>
+        <a href="#why">Why PLAZR</a>
+        <a href="#how">How it works</a>
+        <a href="#for-who">For Who</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="burger" id="burger">&#9776;</button>
+    </header>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#why">Why PLAZR</a>
+      <a href="#how">How it works</a>
+      <a href="#for-who">For Who</a>
+      <a href="#contact">Contact</a>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="parallax-layer hero-bg" data-speed="0.25"></div>
+      <div class="parallax-layer hero-gradient" data-speed="0.10"></div>
+      <div class="container reveal">
+        <h1>PLAZR — The Best Places, For The Best Products</h1>
+        <h2>Where brands and events meet – powered by smart matching.</h2>
+        <p>
+          Connect brands with real-world events for sponsorship and product
+          placement.
+        </p>
+        <a class="cta" href="#contact">Contact Form</a>
+      </div>
+    </section>
+
+    <!-- WHY PLAZR -->
+    <section class="why" id="why">
+      <div class="panel reveal">
+        <div class="headline">
+          <h2>Why PLAZR</h2>
+          <p>
+            <strong>Long story short:</strong> PLAZR is the all-in-one platform
+            that makes international B2B events effortless – from setup to live
+            analytics, we connect brands and organizers for maximum real-world
+            impact.
+          </p>
+        </div>
+        <div class="kpis stagger">
+          <div class="kpi">
+            <div class="num" data-min="5" data-max="15">0</div>
+            <div class="label">Minutes to set up</div>
+          </div>
+          <div class="kpi">
+            <div class="num" data-min="80" data-max="100">0</div>
+            <div class="label">Matchmaking score*</div>
+          </div>
+          <div class="kpi">
+            <div class="num" data-min="10" data-max="30">0</div>
+            <div class="label">Real-time insights</div>
+          </div>
+          <div class="kpi">
+            <div class="num" data-min="20" data-max="60">0</div>
+            <div class="label">Countries scale</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how" id="how">
+      <div class="panel reveal">
+        <h2>How It Works</h2>
+        <div class="card-grid stagger">
+          <div class="step-card">
+            <div class="icon-circle">👤</div>
+            <h3>Create your profile</h3>
+            <p>Organizers list events, brands define audience & goals</p>
+          </div>
+          <div class="step-card">
+            <div class="icon-circle">🔍</div>
+            <h3>Get smart matches</h3>
+            <p>Curated opportunities suggested by Plazr</p>
+          </div>
+          <div class="step-card">
+            <div class="icon-circle">🤝</div>
+            <h3>Connect & collaborate</h3>
+            <p>Align on the deal and confirm partnerships</p>
+          </div>
+          <div class="step-card">
+            <div class="icon-circle">👁️</div>
+            <h3>Go live & get visible</h3>
+            <p>On-site presence with measurable impact</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOR WHO -->
+    <section class="for-who" id="for-who">
+      <div class="panel reveal">
+        <h2>Who is it for?</h2>
+        <div class="card-grid stagger">
+          <div class="step-card">
+            <div class="icon-circle">🚀</div>
+            <h3>For Organizers</h3>
+            <p>Boost reach, secure sponsorships, present professionally</p>
+          </div>
+          <div class="step-card">
+            <div class="icon-circle">🎯</div>
+            <h3>For Brands</h3>
+            <p>Reach target audience, showcase products, find curated events</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT FORM -->
+    <section id="contact">
+      <div class="panel reveal">
+        <h2>Contact Us</h2>
+        <form id="contactForm">
+          <input type="text" name="name" placeholder="Your Name" required />
+          <input type="email" name="email" placeholder="Your Email" required />
+          <textarea
+            name="message"
+            rows="5"
+            placeholder="Your Message"
+            required></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+        <p id="formStatus" style="margin-top: 10px"></p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <h3>Newsletter</h3>
+      <p>Sign up for updates and exclusive opportunities.</p>
+      <p>
+        <strong>Contact</strong><br />Lewis Atenya-Hillenhinrichs, CEO,
+        Co-Founder<br /><a href="mailto:lewis-ceo@myplazr.com"
+          >lewis-ceo@myplazr.com</a
+        >
+      </p>
+    </footer>
+
+    <script>
+      document
+        .getElementById('contactForm')
+        .addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const form = e.target;
+          const status = document.getElementById('formStatus');
+
+          const data = {
+            name: form.name.value,
+            email: form.email.value,
+            message: form.message.value,
+          };
+
+          try {
+            const res = await fetch('https://formspree.io/f/xeozdqqp', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(data),
+            });
+
+            if (res.ok) {
+              status.textContent = 'Message sent successfully!';
+              form.reset(); // <-- Formular wird geleert
+            } else {
+              status.textContent =
+                '❌ There was a problem sending your message.';
+            }
+          } catch (err) {
+            status.textContent = '⚠️ Network error. Please try again.';
+          }
+        });
+      // Header + Parallax
+      const header = document.getElementById('header');
+      const layers = document.querySelectorAll('.parallax-layer');
+      let ticking = false;
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+        header.classList.toggle('scrolled', window.scrollY > 20);
+      }
+      function update() {
+        const y = window.scrollY || 0;
+        layers.forEach(l => {
+          const s = parseFloat(l.dataset.speed || 0);
+          l.style.transform = `translate3d(0, ${y * s}px, 0)`;
+        });
+        ticking = false;
+      }
+      update();
+      window.addEventListener('scroll', onScroll, {passive: true});
+
+      // Reveal
+      const io = new IntersectionObserver(
+        entries => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('in-view');
+              io.unobserve(e.target);
+            }
+          });
+        },
+        {threshold: 0.15},
+      );
+      document
+        .querySelectorAll('.reveal, .stagger')
+        .forEach(el => io.observe(el));
+
+      // Burger
+      document.getElementById('burger').onclick = () =>
+        document.getElementById('mobileMenu').classList.toggle('open');
+
+      // Looping KPI counter
+      document.querySelectorAll('.kpi .num').forEach(el => {
+        const min = parseInt(el.dataset.min, 10);
+        const max = parseInt(el.dataset.max, 10);
+        let current = min;
+        let direction = 1;
+        function animate() {
+          current += direction;
+          if (current >= max || current <= min) direction *= -1;
+          el.textContent = current.toLocaleString('de-DE');
+          setTimeout(animate, 100);
+        }
+        animate();
+      });
+
+      // Animated background particles
+      const canvas = document.getElementById('bgCanvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        particles = Array.from({length: 8}, () => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: 150 + Math.random() * 100,
+          dx: (Math.random() - 0.5) * 0.2,
+          dy: (Math.random() - 0.5) * 0.2,
+        }));
+      }
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+          gradient.addColorStop(0, 'rgba(255,255,255,0.05)');
+          gradient.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = gradient;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          p.x += p.dx;
+          p.y += p.dy;
+          if (p.x - p.r > canvas.width) p.x = -p.r;
+          if (p.x + p.r < 0) p.x = canvas.width + p.r;
+          if (p.y - p.r > canvas.height) p.y = -p.r;
+          if (p.y + p.r < 0) p.y = canvas.height + p.r;
+        });
+        requestAnimationFrame(draw);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      draw();
+    </script>
+  </body>
+</html>

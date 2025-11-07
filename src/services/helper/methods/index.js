@@ -1,10 +1,12 @@
 import { UIManager, LayoutAnimation, Platform } from "react-native";
 import { appointmentStatuses, orderStatuses, rolesTypes } from "../data";
-// import firestore from '@react-native-firebase/firestore'
+import firestore from '@react-native-firebase/firestore'
 
 // import { faker } from '@faker-js/faker'
 import { colors } from "../../utilities";
 import store from "../../../store";
+import { Ethnicity, Gender } from "../../../constants/User";
+import { Countries } from "../../../constants/Countries";
 export const handleAnimation = () => {
     if (Platform.OS === "android") {
         UIManager.setLayoutAnimationEnabledExperimental &&
@@ -202,7 +204,124 @@ export const getUserRole = (type) => {
     return { isMaintainWeightRole, isWeightLossRole, isProfessionalDietitianRole }
 }
 
-// export const getFirestoreDate = () => {
-//     return new Date(firestore.Timestamp.now().seconds * 1000)
-// }
+export const getFirestoreDate = () => {
+    return new Date(firestore.Timestamp.now().seconds * 1000)
+}
+
+export const calcDistance = (lat1, lon1, lat2, lon2, fixed = 0) => {
+    var R = 6371;
+    var dLat = toRad(lat2 - lat1);
+    var dLon = toRad(lon2 - lon1);
+    var lat1 = toRad(lat1);
+    var lat2 = toRad(lat2);
+
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c;
+    return d.toFixed(fixed);
+}
+
+export const toRad = (Value) => {
+    return Value * Math.PI / 180;
+}
+
+export const getUserDetail = (key, user, currentUserSettings, t = {}) => {
+    // Ensure currentUserSettings has defaults
+    const settings = currentUserSettings || {
+        units: {
+            lengthType: 'Cm',
+            distanceType: 'Km', 
+            weightType: 'Kg'
+        },
+        currentLang: 'de'
+    };
+    
+    const detail = user?.details?.[key] || user?.[key];
+    const ethnicities = [
+        { key: Ethnicity.Asian, value: 'ASIAN' },
+        { key: Ethnicity.Exotic, value: 'EXOTIC' },
+        { key: Ethnicity.Ebony, value: 'EBONY' },
+        { key: Ethnicity.Caucasian, value: 'CAUCASIAN' },
+        { key: Ethnicity.MiddleEast, value: 'MIDDLEEAST' },
+        { key: Ethnicity.NativeAmerican, value: 'NATIVEAMERICAN' },
+        { key: Ethnicity.Latin, value: 'LATIN' },
+        { key: Ethnicity.Eastindian, value: 'EASTINDIAN' },
+    ]
+
+    if (key === 'ethnicity') {
+        const ethnicity = ethnicities.find(e => e.key === detail);
+        return t(ethnicity?.value || detail);
+    }
+
+    if (key === 'nationality') {
+        const countries = mapCountries(Countries);
+        const country = countries.find(c => detail?.code === c.key);
+        return t(country?.country || detail?.country || detail);
+    }
+
+    if (['height', 'waist', 'hips', 'chest'].includes(key)) {
+        if (key === 'chest' && user.gender !== 'Male' && user.details?.chestCup) {
+            const value = settings.units?.lengthType === 'Inch'
+                ? Math.round(user.details[key]?.inch || 0)
+                : Math.round(user.details[key]?.cm || 0);
+            return `${value} ${user.details.chestCup}`;
+        } else {
+            return settings.units?.lengthType === 'Inch'
+                ? `${Math.round(user.details[key]?.inch || 0)} inch`
+                : `${Math.round(user.details[key]?.cm || 0)} cm`;
+        }
+    }
+
+    if (key === 'weight') {
+        return settings.units?.weightType === 'Lbs'
+            ? `${Math.round(user.details[key]?.lbs || 0)} Lbs`
+            : `${Math.round(user.details[key]?.kg || 0)} Kg`;
+    }
+
+    if (['hairLength', 'hairColor', 'eyeColor'].includes(key)) {
+        return t(detail);
+    }
+
+    if (key === 'genderLookingFor' && Array.isArray(detail)) {
+        // Remove duplicates from array
+        const uniqueGenders = Array.from(new Set(detail));
+        return uniqueGenders.map(g => {
+            if (g === Gender.Male) return t('MALE');
+            if (g === Gender.Female) return t('FEMALE');
+            if (g === Gender.Transsexual) return t('TRANSSEXUAL');
+            return g;
+        }).join(', ');
+    }
+
+    if (key === 'gender') {
+        if (detail === Gender.Male) return t('MALE');
+        if (detail === Gender.Female) return t('FEMALE');
+        if (detail === Gender.Transsexual) return t('TRANSSEXUAL');
+    }
+
+    if (key === 'birthday') {
+        const birthday = new Date(detail);
+        const ageDifMs = Date.now() - birthday.getTime();
+        const ageDate = new Date(ageDifMs);
+        return user.fakeAge || Math.abs(ageDate.getUTCFullYear() - 1970);
+    }
+
+    return detail;
+};
+
+export const mapCountries = (countries) => {
+    const source = Array.isArray(countries) ? countries : [];
+    const newCountries = [];
+
+    for (let country of source) {
+        const name = country?.name || country?.country || '';
+        const key = country?.alpha3Code || country?.code || country?.key || '';
+        const region = country?.region || '';
+        const flag = country?.flag || null;
+        newCountries.push({ country: name, key, region, flag });
+    }
+
+    return newCountries;
+}
 

@@ -1,0 +1,20 @@
+/* Caméra */
+"NSCameraUsageDescription" = "Nous utilisons la caméra pour prendre des photos de profil, partager des images et pour les appels vidéo.";
+
+/* Localisation */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Nous utilisons votre position pour afficher les utilisateurs à proximité et améliorer les fonctionnalités basées sur la localisation comme les cartes et la recherche.";
+"NSLocationWhenInUseUsageDescription" = "Nous utilisons votre position pour afficher les utilisateurs à proximité et améliorer les fonctionnalités basées sur la localisation comme les cartes et la recherche.";
+
+/* Microphone */
+"NSMicrophoneUsageDescription" = "Nous utilisons le microphone pour les messages vocaux et les appels audio/vidéo.";
+
+/* Bibliothèque de photos */
+"NSPhotoLibraryAddUsageDescription" = "Nous enregistrons les photos et vidéos dans votre bibliothèque lorsque vous téléchargez des médias depuis les conversations ou exportez du contenu.";
+"NSPhotoLibraryUsageDescription" = "Nous utilisons votre bibliothèque de photos pour vous permettre de sélectionner et télécharger des photos sur votre profil et dans les discussions.";
+
+/* Apple Music */
+"NSAppleMusicUsageDescription" = "Cette application n'accède pas à votre bibliothèque Apple Music. Cette autorisation est requise par une bibliothèque tierce.";
+
+/* Suivi */
+"NSUserTrackingUsageDescription" = "Nous utilisons les données de suivi pour personnaliser l'application et améliorer votre expérience. Les données sont partagées avec nos partenaires (Google Analytics/Firebase) pour l'analyse.";
+

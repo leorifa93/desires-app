@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "750696506520",
+    "project_id": "dexxire-dfcba",
+    "storage_bucket": "dexxire-dfcba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:750696506520:android:c7c7d32ef7ebfa0318dced",
+        "android_client_info": {
+          "package_name": "com.digiminds.dexxire"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "750696506520-of5bhad08ppjap28h9fcak2pja4n5gcq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvTrsE9nOVH2rgiI-v5ikBrS2wgH9umgw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "750696506520-of5bhad08ppjap28h9fcak2pja4n5gcq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "750696506520-961pogvnook5s9u7e4cki4h62k8bofdj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dexxire.dexxire",
+                "app_store_id": "6469860378"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

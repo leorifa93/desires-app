@@ -19,18 +19,33 @@ const appImages = {
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Mastercard_2019_logo.svg/800px-Mastercard_2019_logo.svg.png',
   visaCardLogo:
     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png',
-  SplashBackgroundImage: require('../../../assets/images/SplashBackgroundImage.png'),
+  SplashBackgroundImage: require('../../../assets/images/DSRS_splash.jpg'),
   profile: require('../../../assets/images/profile.png'),
   image2: require('../../../assets/images/image2.jpeg'),
   image3: require('../../../assets/images/image3.jpeg'),
   image4: require('../../../assets/images/image4.jpeg'),
   verificationImage: require('../../../assets/images/image4.jpeg'),
+  notApprovedMale: require('../../../assets/images/not_approved_male.jpg'),
+  notApprovedFemale: require('../../../assets/images/not_approved_female.jpg'),
+  // Gestenbilder für Verifikation
+  geste001: require('../../../assets/images/001.jpg'),
+  geste002: require('../../../assets/images/002.jpg'),
+  geste003: require('../../../assets/images/003.jpg'),
+  geste004: require('../../../assets/images/004.jpg'),
+  geste005: require('../../../assets/images/005.jpg'),
+  geste006: require('../../../assets/images/006.jpg'),
+  geste007: require('../../../assets/images/007.jpg'),
+  geste008: require('../../../assets/images/008.jpg'),
+  geste009: require('../../../assets/images/009.jpg'),
+  geste010: require('../../../assets/images/010.jpg'),
 };
 
 const appIcons = {
   LogoWithWhiteText: require('../../../assets/icons/LogoWithWhiteText.png'),
   LogoWithBlackText: require('../../../assets/icons/LogoWithBlackText.png'),
-  Email: require('../../../assets/icons/Email.png'),
+    Email: require('../../../assets/icons/Email.png'),
+    Eye: require('../../../assets/icons/eye-outline.png'),
+    EyeOff: require('../../../assets/icons/eye-off-outline.png'),
   Google: require('../../../assets/icons/google.png'),
   //Bottom Tab Icons
   Home: require('../../../assets/icons/Home.png'),
@@ -79,6 +94,7 @@ const appIcons = {
   Location: require('../../../assets/icons/Location.png'),
   Frame: require('../../../assets/icons/Frame.png'),
   DollarCircle: require('../../../assets/icons/DollarCircle.png'),
+  Coin: require('../../../assets/icons/coin.png'),
   dataSets: require('../../../assets/icons/dataSets.png'),
   //Home Page
   sendIcon: require('../../../assets/icons/Send.png'),

@@ -1,0 +1,401 @@
+import React, { useState } from 'react';
+import {
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Touchable,
+  View,
+  PanGestureHandler,
+  State,
+} from 'react-native';
+import { PanGestureHandler as RNGHPanGestureHandler } from 'react-native-gesture-handler';
+import {
+  appFonts,
+  appIcons,
+  appImages,
+  colors,
+  fontSizes,
+  responsiveHeight,
+  responsiveWidth,
+  sizes,
+} from '../../services';
+import * as Icons from '../icons';
+import Text from '../text';
+import {BackgroundImage, Icon} from '@rneui/base';
+import {withDecay} from 'react-native-reanimated';
+import {LinearGradient} from 'react-native-linear-gradient';
+import {Wrapper, Spacer} from '..';
+import {scale, verticalScale} from 'react-native-size-matters';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+
+export function IconTitleArrow({
+  iconImage,
+  iconName,
+  iconType,
+  iconSvg,
+  title,
+  onPress,
+  left,
+  right,
+  invertColors,
+  titleStyle,
+  containerStyle,
+  disableIconColor,
+  arrowColor,
+  iconContainerColor,
+  ...props
+}) {
+  const defaulTintColor = !invertColors
+    ? colors.appTextColor2
+    : colors.appTextColor6;
+  const defaulArrowColor =
+    arrowColor || (!invertColors ? colors.appTextColor4 : colors.appTextColor6);
+  const defaulBackgroundColor =
+    iconContainerColor ||
+    (!invertColors ? colors.appBgColor1 : colors.appBgColor6);
+  return (
+    <Pressable activeOpacity={1} onPress={onPress}>
+      <Wrapper
+        flexDirectionRow
+        justifyContentSpaceBetween
+        marginHorizontalBase
+        alignItemsCenter
+        style={containerStyle}
+        {...props}>
+        <Wrapper flexDirectionRow alignItemsCenter>
+          {left ? (
+            left
+          ) : iconImage || iconName || iconSvg ? (
+            <Icons.Button
+              customIcon={iconImage}
+              iconName={iconName}
+              iconType={iconType}
+              svgIcon={iconSvg}
+              iconColor={!disableIconColor && defaulTintColor}
+              iconSize={responsiveWidth(5)}
+              buttonColor={defaulBackgroundColor}
+              buttonSize={responsiveWidth(10)}
+              isRound
+              //buttonStyle={{ marginRight: sizes.marginHorizontal }}
+            />
+          ) : null}
+          <Text isMedium style={[{color: defaulTintColor}, titleStyle]}>
+            {title}
+          </Text>
+        </Wrapper>
+        {right ? (
+          right
+        ) : (
+          <Icon
+            name="chevron-right"
+            type="feather"
+            color={defaulArrowColor}
+            size={sizes.icons.medium}
+          />
+        )}
+      </Wrapper>
+    </Pressable>
+  );
+}
+
+export function Profile({
+  isVip,
+  isGold,
+  isStandard,
+  CardImage,
+  DeckSwiper,
+  onPressHot,
+  onPressNot,
+  onPress,
+  username,
+  distance,
+  city,
+  badges = [],
+  profilePictures = {},
+  publicAlbum = [],
+  onPressPoints
+}) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Combine all images into one array
+  const allImages = React.useMemo(() => {
+    const images = [];
+    
+    // Add main profile picture
+    if (profilePictures && Object.keys(profilePictures).length > 0) {
+      images.push({
+        type: 'profile',
+        url: profilePictures.thumbnails?.big || profilePictures.original,
+        original: profilePictures.original
+      });
+    }
+    
+    // Add public album pictures
+    if (publicAlbum && Array.isArray(publicAlbum)) {
+      publicAlbum.forEach(pic => {
+        if (pic && pic.original) {
+          images.push({
+            type: 'album',
+            url: pic.thumbnails?.big || pic.original,
+            original: pic.original
+          });
+        }
+      });
+    }
+    
+    return images;
+  }, [profilePictures, publicAlbum]);
+  
+  // Get current image to display
+  const currentImage = allImages[currentImageIndex] || { url: CardImage };
+  
+  // Handle swipe gesture
+  const onSwipeGesture = (event) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX } = event.nativeEvent;
+      const threshold = 50; // Minimum swipe distance
+      
+      if (Math.abs(translationX) > threshold) {
+        if (translationX > 0 && currentImageIndex > 0) {
+          // Swipe right - previous image
+          setCurrentImageIndex(currentImageIndex - 1);
+        } else if (translationX < 0 && currentImageIndex < allImages.length - 1) {
+          // Swipe left - next image
+          setCurrentImageIndex(currentImageIndex + 1);
+        }
+      }
+    }
+  };
+  const styles = StyleSheet.create({
+    backgroundLayer: {
+      overflow: 'hidden',
+    },
+    BackgroundImageStyle: {
+      height: responsiveHeight(60),
+      width: responsiveWidth(90),
+      overflow: 'hidden',
+      borderRadius: responsiveWidth(4.5),
+      resizeMode: 'cover',
+    },
+    mainContainer: {
+      borderRadius: responsiveWidth(5),
+      //backgroundColor: 'red',
+      //overflow: 'hidden',
+      // borderWidth: 2,
+    },
+    ProfileLabel: {
+      height: sizes.doubleBaseMargin,
+      width: responsiveWidth(40),
+      position: 'absolute',
+      top: responsiveHeight(2),
+      left: -responsiveWidth(12),
+      backgroundColor: colors.appBgColor1,
+      //backgroundColor: 'red',
+      transform: [{rotateZ: '310deg'}],
+      //zIndex: 99,
+    },
+    LocationMainContainer: {
+      position: 'absolute',
+      top: responsiveHeight(2),
+      right: 5,
+      borderRadius: responsiveWidth(2),
+      backgroundColor: colors.cloud,
+    },
+    IndexingMainContainer: {
+      paddingVertical: responsiveHeight(0.8),
+      paddingHorizontal: responsiveWidth(1.2),
+      position: 'absolute',
+      top: responsiveHeight(1),
+      right: responsiveWidth(1),
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      borderRadius: responsiveWidth(2),
+      zIndex: 999,
+      elevation: 5,
+    },
+  });
+  return (
+    <Wrapper style={styles.backgroundLayer}>
+      <Pressable
+        onPress={() => {
+          onPress && onPress();
+        }}>
+        <Wrapper
+          style={[
+            styles.mainContainer,
+            isGold && {borderColor: colors.GoldLabelBackground, borderWidth: 2},
+            isVip && {borderColor: colors.appPrimaryColor, borderWidth: 2},
+            isStandard && {borderWidth: 0},
+          ]}>
+          <RNGHPanGestureHandler
+            onHandlerStateChange={onSwipeGesture}
+            minDist={10}>
+            <View style={[
+              styles.BackgroundImageStyle,
+              DeckSwiper && {height: verticalScale(420)},
+            ]}>
+              <ImageBackground
+                source={currentImage.url ? {uri: currentImage.url} : appImages.image2}
+                style={{flex: 1}}>
+                {/* Points outside of LinearGradient */}
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation(); // Prevent card press
+                    onPressPoints && onPressPoints();
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.IndexingMainContainer}>
+                  <Wrapper
+                    isCenter
+                    gap={responsiveWidth(1.5)}>
+                    {(() => {
+                      // Show dots for each available image
+                      return allImages.map((_, index) => {
+                        const isActive = index === currentImageIndex;
+                        return (
+                          <View
+                            key={index}
+                            style={{
+                              backgroundColor: isActive ? '#fff' : 'rgba(255, 255, 255, 0.5)',
+                              height: scale(4),
+                              width: scale(4),
+                              borderRadius: responsiveWidth(100),
+                            }}
+                          />
+                        );
+                      });
+                    })()}
+                  </Wrapper>
+                </TouchableOpacity>
+                
+                <LinearGradient
+                  colors={['rgba(34, 24, 49, 0)', 'rgba(27, 36, 49, 0.85)']} // Adjust the colors as needed
+                  start={{x: 0, y: 0}} // Start from the top
+                  end={{x: 0, y: 1}} // End at the bottom
+                  style={{flex: 1, justifyContent: 'flex-end'}}>
+                  <Wrapper
+                    marginHorizontalBase
+                    justifyContentCenter
+                    //paddingVerticalTiny
+                    //backgroundColor={'red'}
+                    style={{height: responsiveHeight(13)}}>
+                    {/* Profile Details */}
+                    <Wrapper>
+                      <Text isTinyTitle isWhite children={`${username}, 27`} />
+                      <Spacer isTiny />
+                      <Text isRegular isWhite children={city} />
+                      <Spacer height={responsiveHeight(1.5)} />
+                      <Wrapper flexDirectionRow gap={responsiveWidth(2)}>
+                        {badges.map((badge, index) => (
+                          <Wrapper
+                            key={index}
+                            paddingVerticalTiny
+                            paddingHorizontalSmall
+                            backgroundColor={colors.appBgColor1}
+                            style={{borderRadius: responsiveWidth(2)}}>
+                            <Text isTiny children={badge} />
+                          </Wrapper>
+                        ))}
+                      </Wrapper>
+                      <Spacer height={verticalScale(10)} />
+                    </Wrapper>
+                    {/* Location Btn */}
+                    <Wrapper
+                      paddingHorizontalTiny
+                      paddingVerticalTiny
+                      style={styles.LocationMainContainer}>
+                      <Wrapper style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}>
+                        <Text style={{
+                          fontSize: responsiveWidth(3.5),
+                          marginRight: responsiveWidth(1),
+                          color: colors.appTextColor6,
+                        }}>
+                          📍
+                        </Text>
+                        <Text style={{
+                          fontSize: fontSizes.small,
+                          fontFamily: appFonts.appTextMedium,
+                          color: colors.appTextColor6,
+                        }}>
+                          {distance}
+                        </Text>
+                      </Wrapper>
+                    </Wrapper>
+                  </Wrapper>
+                  {/* the Dreck Swip card Buttons  */}
+                  {DeckSwiper ? (
+                    <Wrapper
+                      paddingVerticalBase
+                      marginHorizontalBase
+                      //backgroundColor={'green'}
+                      flexDirectionRow
+                      justifyContentSpaceBetween
+                      alignItemsCenter>
+                  <Icons.Button
+                    customIcon={appIcons.Hot}
+                    iconSize={scale(30)}
+                    buttonStyle={{
+                      borderRadius: responsiveWidth(100),
+                      height: scale(59),
+                      width: scale(59),
+                      backgroundColor: colors.appPrimaryColor,
+                    }}
+                    onPress={() => {
+                      onPressHot();
+                    }}
+                  />
+                  <Icons.Button
+                    iconName={'exclamationcircleo'}
+                    iconType={'antdesign'}
+                    iconSize={scale(24)}
+                    buttonColor={colors.transparent}
+                    iconColor={colors.appBgColor1}
+                  />
+                  <Icons.Button
+                    iconName={'close-outline'}
+                    iconType={'ionicon'}
+                    iconColor={colors.appBGColor}
+                    iconSize={scale(30)}
+                    buttonStyle={{
+                      borderRadius: responsiveWidth(100),
+                      height: scale(59),
+                      width: scale(59),
+                      backgroundColor: colors.appBgColor1,
+                    }}
+                    onPress={() => {
+                      onPressNot();
+                    }}
+                  />
+                </Wrapper>
+              ) : null}
+            </LinearGradient>
+          </ImageBackground>
+          {/* Label */}
+          {isVip || isGold || isStandard ? (
+            <Wrapper
+              isCenter
+              style={[
+                styles.ProfileLabel,
+                isGold && {backgroundColor: colors.GoldLabelBackground},
+                isStandard && {backgroundColor: colors.appBGColor},
+              ]}>
+              <Text
+                alignTextCenter
+                isRegular
+                isBoldFont
+                isPrimaryColor={isVip}
+                isWhite={!isVip}
+                children={isVip ? 'VIP' : isGold ? 'Gold' : 'Standrad'}
+              />
+            </Wrapper>
+          ) : null}
+                </LinearGradient>
+              </ImageBackground>
+            </View>
+          </RNGHPanGestureHandler>
+      </Pressable>
+    </Wrapper>
+  );
+}

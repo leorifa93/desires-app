@@ -11,18 +11,12 @@ export function useHooks() {
   const TopRightButtonsData = useMemo(
     () => [
       {
-        IconName: appIcons.Search,
+        IconName: appIcons.Location,
         customPadding: responsiveWidth(2.5),
         isWithBorder: true,
         onPress: () => {
-          HandleSearchModal();
+          // Diese Funktion wird von der Hauptkomponente überschrieben
         },
-      },
-      {
-        IconName: appIcons.filterIcon,
-        customPadding: responsiveWidth(2.5),
-        notify: 8,
-        isWithBorder: true,
       },
     ],
     [],

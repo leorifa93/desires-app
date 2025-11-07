@@ -224,6 +224,8 @@ export const IconWithTextSelectOptions = ({
   IsMultiSelector,
   InFlatList,
   NoColorOfIcon,
+  onPress,
+  selectedValue,
 }) => {
   const styles = StyleSheet.create({
     itemContainer: {
@@ -244,7 +246,7 @@ export const IconWithTextSelectOptions = ({
     },
   });
   const [selectedValues, setSelectedValues] = useState(
-    Data.length > 0 ? [Data[0]] : [],
+    selectedValue ? [Data.find(item => item.value === selectedValue)] : []
   );
 
   const toggleSelection = item => {
@@ -254,6 +256,11 @@ export const IconWithTextSelectOptions = ({
     } else {
       // Add item to selection
       setSelectedValues(IsMultiSelector ? [...selectedValues, item] : [item]);
+    }
+    
+    // Call the onPress callback if provided
+    if (onPress) {
+      onPress(item);
     }
   };
 

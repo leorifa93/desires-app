@@ -1,11 +1,14 @@
 import {FlatList, View} from 'react-native';
 import React from 'react';
 import {Headers, Spacer, Text, Wrapper} from '../../../components';
-import {appStyles, responsiveFontSize} from '../../../services';
+import {appStyles, responsiveFontSize, responsiveHeight} from '../../../services';
 import {useHooks} from './hooks';
+import {useTranslation} from 'react-i18next';
 
 export default function Index() {
-  const {FriendRenderDetail, data} = useHooks();
+  const {t} = useTranslation();
+  const {FriendRenderDetail, data, loading, loadFriendRequests} = useHooks();
+  
   return (
     <Wrapper isMain>
       <Headers.Primary
@@ -19,7 +22,7 @@ export default function Index() {
                 fontSize: responsiveFontSize(16),
               },
             ]}>
-            Friend Requests <Text isPrimaryColor>(3)</Text>
+            {t('FRIEND_REQUESTS')} <Text isPrimaryColor>({data.length})</Text>
           </Text>
         }
       />
@@ -31,6 +34,16 @@ export default function Index() {
         renderItem={({item, index}) => (
           <FriendRenderDetail key={index} Detail={item} />
         )}
+        keyExtractor={(item, index) => item.id || index.toString()}
+        refreshing={loading}
+        onRefresh={loadFriendRequests}
+        ListEmptyComponent={
+          <Wrapper isCenter style={{ paddingTop: responsiveHeight(20) }}>
+            <Text isRegular isTextColor2>
+              {t('NO_FRIEND_REQUESTS') || 'No friend requests'}
+            </Text>
+          </Wrapper>
+        }
       />
     </Wrapper>
   );

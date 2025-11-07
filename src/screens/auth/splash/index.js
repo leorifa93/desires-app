@@ -23,7 +23,7 @@ function Splash() {
               animation={'fadeIn'}
               paddingHorizontalBase
               //backgroundColor={'red'}
-              style={{height: responsiveHeight(47)}}>
+              style={{height: responsiveHeight(80)}}>
               <Logos.PrimaryWhite />
             </Wrapper>
           </Wrapper>

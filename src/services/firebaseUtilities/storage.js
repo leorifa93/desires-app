@@ -1,92 +1,159 @@
 import storage from '@react-native-firebase/storage';
 import { Platform } from 'react-native';
 
-export const uploadFile = async ({ file, directory, onProgress }) => {
-    const { uri, name, type } = file;
-
-    // Create a storage directory path
-    const _directory = directory || 'videos';  // Replace with your desired path
-    const storage_directory = `${_directory}/${name}`;
-
-    // Handle platform-specific URI modifications
-    const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-
+export const uploadImage = async (imageUri, storagePath, onProgress) => {
+  return new Promise(async (resolve, reject) => {
     try {
-        const fetchedVideo = await fetch(uploadUri);
-        const videoBlob = await fetchedVideo.blob();
-        const reference = storage().ref(storage_directory);
+      // Handle platform-specific URI modifications
+      const uploadUri = Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri;
+      
+      // Use exact filename pattern like old project (no extension) and set contentType
+      const storageRef = storage().ref(`Dexxire/${storagePath}`);
+      console.log('[Upload] Target path:', `Dexxire/${storagePath}`);
+      
+      // Upload the image file directly (prevents zero-size/corrupt objects)
+      const uploadTask = storageRef.putFile(uploadUri, { contentType: 'image/jpeg' });
 
-        // Use Firebase Storage's putFile method to upload the video directly
-        const task = reference.put(videoBlob);
+      // Wire progress listener
+      const unsubscribe = uploadTask.on('state_changed', (taskSnapshot) => {
+        try {
+          const { bytesTransferred, totalBytes } = taskSnapshot;
+          if (totalBytes > 0) {
+            const percent = Math.max(0, Math.min(100, Math.round((bytesTransferred / totalBytes) * 100)));
+            if (typeof onProgress === 'function') onProgress(percent);
+          }
+        } catch (_) {
+          // no-op
+        }
+      });
 
-        // Monitor the upload progress and handle errors
-        task.on('state_changed', (snapshot) => {
-            const _progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-            // console.log('Progress:', _progress);
-            onProgress && onProgress(_progress)
-        });
+      // Wait for upload to complete
+      await uploadTask;
 
-        await task;
-
-        const downloadURL = await reference.getDownloadURL();
-        console.log('Video uploaded successfully! Download URL:', downloadURL);
-        return downloadURL;  // Return the download URL
-
+      // Cleanup listener
+      if (typeof unsubscribe === 'function') unsubscribe();
+      
+      // Get original download URL
+      const originalDownloadURL = await storageRef.getDownloadURL();
+      
+      // Return immediately with original image as thumbnails (thumbnails will be handled by cloud function later)
+      const pictures = { 
+        original: originalDownloadURL,
+        thumbnails: {
+          small: originalDownloadURL,
+          medium: originalDownloadURL,
+          big: originalDownloadURL
+        },
+        uploadAt: Date.now(),
+        approved: false
+      };
+      
+      console.log('[Upload] Upload completed, returning original image immediately');
+      resolve(pictures);
+      
     } catch (error) {
-        console.error('Error uploading video:', error);
-        // Handle errors appropriately (e.g., show error message to user)
-        throw error;  // Re-throw the error for further handling if needed
+      console.error('[Upload] Error:', error);
+      reject(error);
     }
+  });
 };
 
-// export const uploadImage = async ({ image }) => {
+// Upload video to Firebase Storage
+export const uploadVideo = async (videoUri, storagePath, onProgress) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Handle platform-specific URI modifications
+      const uploadUri = Platform.OS === 'ios' ? videoUri.replace('file://', '') : videoUri;
+      
+      const storageRef = storage().ref(`Dexxire/${storagePath}`);
+      console.log('[Video Upload] Target path:', `Dexxire/${storagePath}`);
+      
+      // Upload the video file with video content type
+      const uploadTask = storageRef.putFile(uploadUri, { contentType: 'video/mp4' });
 
-//     let response = null
-//     const { uri, name, type } = image;
-//     const directory = '/images/users'
-//     const filename = uri.substring(uri.lastIndexOf('/') + 1);
-//     const storage_directory = directory + '/' + filename
-//     const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+      // Wire progress listener
+      const unsubscribe = uploadTask.on('state_changed', (taskSnapshot) => {
+        try {
+          const { bytesTransferred, totalBytes } = taskSnapshot;
+          if (totalBytes > 0) {
+            const percent = Math.max(0, Math.min(100, Math.round((bytesTransferred / totalBytes) * 100)));
+            if (typeof onProgress === 'function') onProgress(percent);
+          }
+        } catch (_) {
+          // no-op
+        }
+      });
 
-//     console.log('storage_directory: ', storage_directory)
-//     console.log('uploadUri: ', uploadUri)
-//     //setUploading(true);
-//     //setTransferred(0);
+      // Wait for upload to complete
+      await uploadTask;
 
-//     const reference = storage().ref(storage_directory)
-//     await reference
-//         .putFile(uploadUri)
-//         .then(async res => {
-//             if (res) {
-//                 await reference.getDownloadURL()
-//                     .then(res => {
-//                         if (res) {
-//                             response = res
-//                         }
-//                     })
-//             }
-//         })
+      // Cleanup listener
+      if (typeof unsubscribe === 'function') unsubscribe();
+      
+      // Get download URL
+      const downloadURL = await storageRef.getDownloadURL();
+      
+      const videoData = { 
+        original: downloadURL,
+        uploadAt: Date.now(),
+        approved: false
+      };
+      
+      console.log('[Video Upload] Upload completed');
+      resolve(videoData);
+      
+    } catch (error) {
+      console.error('[Video Upload] Error:', error);
+      reject(error);
+    }
+  });
+};
 
+// Delete all files in a folder (like old project's deleteAll)
+export const deleteAll = async (refPath) => {
+  try {
+    const basePath = `Dexxire/${refPath}`;
+    console.log('[deleteAll] Deleting all files in:', basePath);
+    
+    const listRef = storage().ref(basePath);
+    const thumbnailsRef = storage().ref(basePath + '/thumbnails');
+    
+    const [imageResult, thumbnailResult] = await Promise.all([
+      listRef.listAll().catch(() => ({ items: [] })),
+      thumbnailsRef.listAll().catch(() => ({ items: [] }))
+    ]);
+    
+    // Delete all images in base folder
+    for (let item of imageResult.items) {
+      console.log('[deleteAll] Deleting image:', item.fullPath);
+      await item.delete();
+    }
+    
+    // Delete all thumbnails
+    for (let item of thumbnailResult.items) {
+      console.log('[deleteAll] Deleting thumbnail:', item.fullPath);
+      await item.delete();
+    }
+    
+    console.log('[deleteAll] Successfully deleted all files');
+  } catch (error) {
+    console.error('[deleteAll] Error:', error);
+    throw error;
+  }
+};
 
-//     // set progress state
-//     // task.on('state_changed', snapshot => {
-//     //       setTransferred(
-//     //         Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
-//     //       );
-//     // });
-
-//     // task.then(() => {
-//     //     console.log('Image uploaded to the bucket!');
-//     // });
-
-//     // try {
-//     //     await task;
-//     // } catch (e) {
-//     //     console.error(e);
-//     // }
-
-//     // setUploading(false);
-
-//     // setImage(null);
-//     return response
-// };
+// Keep the deleteAllThumbnails function for future use
+export const deleteAllThumbnails = async (basePath) => {
+  try {
+    const thumbnailsRef = storage().ref(basePath + '/thumbnails');
+    const listResult = await thumbnailsRef.listAll();
+    
+    if (listResult.items && listResult.items.length > 0) {
+      const deletePromises = listResult.items.map(item => item.delete());
+      await Promise.all(deletePromises);
+      console.log('[Upload] Deleted existing thumbnails');
+    }
+  } catch (error) {
+    console.log('[Upload] No existing thumbnails to delete or error:', error.message);
+  }
+};

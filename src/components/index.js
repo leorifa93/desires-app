@@ -27,6 +27,7 @@ import * as BarButtons from './barButtons';
 import * as DropDowns from './dropdowns';
 import * as Swipeables from './swipeables';
 import PhoneNumberInput from './phoneInput';
+import VideoTrimmer from './VideoTrimmer';
 
 export {
   Wrapper,
@@ -57,4 +58,6 @@ export {
   DropDowns,
   Swipeables,
   PhoneNumberInput,
+  VideoTrimmer,
 };
+

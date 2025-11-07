@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect, useLayoutEffect} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,15 @@ import {colors, responsiveHeight, responsiveWidth} from '../../services';
 import {scale} from 'react-native-size-matters';
 import {Wrapper} from '..';
 
+const isTablet = () => {
+  const {width, height} = Dimensions.get('window');
+  return (
+    (Platform.OS === 'android' && (width >= 600 || height >= 600)) ||
+    (Platform.OS === 'ios' && Platform.isPad) ||
+    (width >= 768 && height >= 768)
+  );
+};
+
 export function KeyboardAvoiding({children, style, animation}) {
   return (
     <KeyboardAwareScrollView
@@ -26,26 +35,59 @@ export function KeyboardAvoiding({children, style, animation}) {
   );
 }
 
-export function WithKeyboardAvoidingView({children, footer, containerStyle}) {
+export function WithKeyboardAvoidingView({children, footer, containerStyle, scrollStyle, scrollEnabled = true, scrollViewRef, onScroll}) {
   return (
-    <KeyboardAvoidingView
-      style={[{flex: 1}, containerStyle]}
-      behavior={Platform.OS === 'ios' ? 'padding' : null}>
-      <ScrollView showsVerticalScrollIndicator={false}>{children}</ScrollView>
+    <KeyboardAwareScrollView
+      innerRef={scrollViewRef}
+      showsVerticalScrollIndicator={false}
+      style={[{flex: 1}, containerStyle, scrollStyle]}
+      contentContainerStyle={{flexGrow: 1}}
+      enableOnAndroid={true}
+      enableAutomaticScroll={true}
+      extraScrollHeight={Platform.OS === 'android' ? 20 : 250}
+      extraHeight={Platform.OS === 'android' ? 20 : 250}
+      enableResetScrollToCoords={false}
+      keyboardShouldPersistTaps="handled"
+      scrollEnabled={scrollEnabled}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+      keyboardOpeningTime={0}
+      viewIsInsideTabBar={false}
+      nestedScrollEnabled={true}
+    >
+      {children}
       {footer}
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 
-export const HorizontalScrollWithDots = ({Data, RenderItem}) => {
+export const HorizontalScrollWithDots = ({Data, RenderItem, currentIndex, onIndexChange, hideDots = false}) => {
   const {width} = Dimensions.get('screen');
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
   const scrollViewRef = useRef(null);
+  const lastCurrentIndex = useRef(currentIndex);
+  const ignoreNextScroll = useRef(false);
+
+  useLayoutEffect(() => {
+    if (typeof currentIndex === 'number' && scrollViewRef.current && currentIndex !== lastCurrentIndex.current) {
+      scrollViewRef.current.scrollTo({x: currentIndex * width, animated: currentIndex !== 0});
+      setActiveIndex(currentIndex);
+      lastCurrentIndex.current = currentIndex;
+      ignoreNextScroll.current = true;
+    }
+  }, [currentIndex, width]);
 
   const onScroll = event => {
+    if (ignoreNextScroll.current) {
+      ignoreNextScroll.current = false;
+      return;
+    }
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(contentOffsetX / width);
     setActiveIndex(currentIndex);
+    if (onIndexChange) {
+      onIndexChange(currentIndex);
+    }
   };
 
   const scrollToIndex = index => {
@@ -53,6 +95,7 @@ export const HorizontalScrollWithDots = ({Data, RenderItem}) => {
       scrollViewRef.current.scrollTo({x: index * width, animated: true});
     }
   };
+  const tablet = isTablet();
   const styles = StyleSheet.create({
     container: {
       //flex: 1,
@@ -67,7 +110,7 @@ export const HorizontalScrollWithDots = ({Data, RenderItem}) => {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 10,
+      marginTop: tablet ? 5 : 10,
       //backgroundColor: 'red',
     },
     dot: {
@@ -102,19 +145,37 @@ export const HorizontalScrollWithDots = ({Data, RenderItem}) => {
           ))}
         </ScrollView>
       </View>
-      <Wrapper paddingVerticalBase flex={1}>
-        <View style={styles.paginationContainer}>
-          {Data.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                activeIndex === index ? styles.activeDot : styles.inactiveDot,
-              ]}
-            />
-          ))}
-        </View>
-      </Wrapper>
+      {!hideDots && (
+        tablet ? (
+          <Wrapper paddingVerticalTiny>
+            <View style={styles.paginationContainer}>
+              {Data.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    activeIndex === index ? styles.activeDot : styles.inactiveDot,
+                  ]}
+                />
+              ))}
+            </View>
+          </Wrapper>
+        ) : (
+          <Wrapper paddingVerticalBase flex={1}>
+            <View style={styles.paginationContainer}>
+              {Data.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    activeIndex === index ? styles.activeDot : styles.inactiveDot,
+                  ]}
+                />
+              ))}
+            </View>
+          </Wrapper>
+        )
+      )}
     </View>
   );
 };

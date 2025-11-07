@@ -1,95 +1,187 @@
-import {StyleSheet, TouchableOpacity} from 'react-native';
-import React, {useMemo} from 'react';
+import { StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import React from 'react';
 import {
-  BarButtons,
-  Buttons,
   Headers,
-  Labels,
-  Modals,
   ScrollViews,
   Spacer,
-  Swipeables,
   Text,
   Wrapper,
+  Loaders,
+  Icons,
 } from '../../../components';
-import LinearGradient from 'react-native-linear-gradient';
 import {
-  appIcons,
   colors,
   responsiveHeight,
   responsiveWidth,
   sizes,
+  appIcons,
 } from '../../../services';
-import {useHooks} from './hooks';
-import {verticalScale} from 'react-native-size-matters';
-import {Button} from '../../../components/icons';
-import {goBack} from '../../../navigation/rootNavigation';
+import { useHooks } from './hooks';
+import { useTranslation } from 'react-i18next';
 
 export default function Index() {
-  const {data, PayWithData, PayMethodModal, handleTogglePayMethodModal} =
-    useHooks();
+  const { t } = useTranslation();
+  const { 
+    data, 
+    loading, 
+    purchasing, 
+    selectedProduct, 
+    handlePurchase 
+  } = useHooks();
+
+  const handleProductSelect = (product) => {
+    handlePurchase(product);
+  };
+
+  const renderProductItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => handleProductSelect(item)}
+      style={[
+        styles.productItem,
+        selectedProduct?.id === item.id && styles.selectedProduct
+      ]}
+    >
+      <Wrapper
+        flexDirectionRow
+        alignItemsCenter
+        justifyContentSpaceBetween
+        paddingHorizontalSmall
+        paddingVerticalSmall
+        style={styles.productContainer}
+        backgroundColor={colors.appModalOptionBGColor}
+      >
+        <Wrapper flexDirectionRow alignItemsCenter>
+          <Wrapper isCenter style={styles.iconContainer}>
+            <Icons.Custom icon={appIcons.Coin} size={responsiveWidth(8)} />
+          </Wrapper>
+          <Text
+            isRegular
+            style={{fontFamily: 'Poppins-Medium'}}
+            children={`${item.title} - ${item.price}`}
+          />
+        </Wrapper>
+        {selectedProduct?.id === item.id && (
+          <Icons.Custom
+            icon={appIcons.Tick}
+            size={responsiveWidth(5)}
+            tintColor={colors.appPrimaryColor}
+          />
+        )}
+      </Wrapper>
+    </TouchableOpacity>
+  );
+
   return (
     <Wrapper isMain>
-      <Headers.Primary showBackArrow title={'Buy Coins'} />
+      <Headers.Primary showBackArrow title={t('BUY_COINS')} />
 
-      <ScrollViews.KeyboardAvoiding>
-        <Spacer isBasic />
-        <Text alignTextCenter isTextColor2 isRegular isRegularFont>
-          Buy Coin to boost your profile in your region
-        </Text>
-        <Spacer isBasic />
-        <BarButtons.IconWithTextSelectOptions
-          Data={data}
-          labelRepresent={item => `${item.label} ${item.price}`}
+      {loading ? (
+        <Loaders.Primary />
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderProductItem}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={() => (
+            <>
+              <Spacer isBasic />
+              <Text alignTextCenter isTextColor2 isRegular isRegularFont>
+                {t('BUY_COINS_DESCRIPTION')}
+              </Text>
+              <Spacer isBasic />
+            </>
+          )}
+          ItemSeparatorComponent={() => <Spacer height={responsiveHeight(1.5)} />}
+          ListFooterComponent={() => <Spacer height={responsiveHeight(15)} />}
+          contentContainerStyle={{ paddingBottom: responsiveHeight(2) }}
         />
-      </ScrollViews.KeyboardAvoiding>
-      <LinearGradient
-        colors={['rgba(255, 255, 255, 0.79)', '#FFFFFF']}
-        style={styles.linearMainContainer}
-        start={{x: 0, y: 1}}
-        end={{x: 0, y: 0}}>
-        <Swipeables.SwipableItem
-          onSwipeLeft={handleTogglePayMethodModal}
-          swipeDistance={responsiveWidth(80)}
-          SwipeTitle={'9.0$'}
-          LeftTitle={'Select the Payment Method'}
-          BtnTitle={'Swipe To Pay'}
-        />
-      </LinearGradient>
-      <Modals.PopupPrimary
-        visible={PayMethodModal}
-        isBlur
-        toggle={handleTogglePayMethodModal}
-        children={
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'Pay For Coins'}
-              Description={'Select an option below to buy the coins'}
-              onPress={handleTogglePayMethodModal}
-            />
+      )}
+
+      {purchasing && (
+        <Wrapper
+          isAbsolute
+          style={styles.loadingOverlay}
+          backgroundColor="rgba(0,0,0,0.5)"
+        >
+          <Wrapper
+            backgroundColor={colors.appBgColor1}
+            paddingHorizontalSmall
+            paddingVerticalSmall
+            style={styles.loadingModal}
+          >
+            <Text isRegular isMediumFont alignTextCenter>
+              {t('PROCESSING_PURCHASE')}
+            </Text>
+            <Spacer isTiny />
+            <Text isSmall alignTextCenter isTextColor2>
+              {t('PLEASE_WAIT')}
+            </Text>
             <Spacer isBasic />
-            <BarButtons.IconWithTextSelectOptions Data={PayWithData} />
-            <Spacer height={verticalScale(20)} />
-            <Wrapper paddingVerticalBase>
-              <Buttons.Colored
-                text={'Continue'}
-                onPress={() => {
-                  handleTogglePayMethodModal();
-                  goBack();
-                }}
-              />
-            </Wrapper>
+            <Loaders.Secondary isVisible={true} />
           </Wrapper>
-        }
-      />
+        </Wrapper>
+      )}
     </Wrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  linearMainContainer: {
-    height: responsiveHeight(10),
+  productItem: {
+    marginHorizontal: sizes.baseMargin,
+    borderColor: colors.appBorderColor1,
+    borderWidth: 2,
+    borderRadius: responsiveWidth(3),
+  },
+  selectedProduct: {
+    borderWidth: 2,
+    borderColor: colors.appPrimaryColor,
+    borderRadius: responsiveWidth(3),
+  },
+  productContainer: {
+    borderRadius: responsiveWidth(3),
+  },
+  iconContainer: {
+    height: responsiveWidth(12),
+    width: responsiveWidth(12),
+    borderRadius: responsiveWidth(100),
+    backgroundColor: colors.appBgColor1,
+    marginRight: responsiveWidth(3),
+  },
+  loadingOverlay: {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
-    paddingVertical: sizes.baseMargin,
+    alignItems: 'center',
+  },
+  loadingModal: {
+    borderRadius: responsiveWidth(3),
+    minWidth: responsiveWidth(60),
+  },
+  productCard: {
+    borderWidth: 2,
+    borderColor: '#FFD700', // Gold, passe ggf. an dein App-Design an
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3, // für Android
+  },
+  productTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 16,
+    color: '#666',
   },
 });

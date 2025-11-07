@@ -21,6 +21,9 @@ export const routes = {
   signin: 'signin',
   createAccount: 'createAccount',
   credentialScreen: 'credentialScreen',
+  registerSteps: 'registerSteps',
+  phoneVerification: 'phoneVerification',
+  verificationChoice: 'verificationChoice',
 
   //app
   bottomTab: 'bottomTab',
@@ -38,9 +41,11 @@ export const routes = {
   audioCall: 'audioCall',
   videoCall: 'videoCall',
   chatScreen: 'chatScreen',
+  incomingCall: 'incomingCall',
 
   position: 'position',
   mySearch: 'mySearch',
+  userSearch: 'userSearch',
   userProfile: 'userProfile',
   buyCoins: 'buyCoins',
   support: 'support',
@@ -53,6 +58,16 @@ export const routes = {
   myCredit: 'myCredit',
   inviteFriends: 'inviteFriends',
   verifyProfile: 'verifyProfile',
+  notifications: 'notifications',
+  
+  //backend
+  backend: 'backend',
+  'backend-image-proof': 'backend-image-proof',
+  'backend-verification': 'backend-verification',
+  'backend-sell-history': 'backend-sell-history',
+  'backend-all-users': 'backend-all-users',
+  'backend-demo-chats': 'backend-demo-chats',
+  
   //common
   termsOfService: 'termsOfService',
   privacyPolicy: 'privacyPolicy',

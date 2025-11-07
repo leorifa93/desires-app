@@ -20,6 +20,14 @@ const AuthNavigation = () => {
         name={routes.createAccount}
         component={Auth.CreateAccount}
       />
+      <AuthStack.Screen
+        name={routes.registerSteps}
+        component={Auth.RegisterSteps}
+      />
+      <AuthStack.Screen
+        name={routes.phoneVerification}
+        component={Auth.PhoneVerification}
+      />
     </AuthStack.Navigator>
   );
 };

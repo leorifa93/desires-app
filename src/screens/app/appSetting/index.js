@@ -1,40 +1,51 @@
-import {ScrollView, StyleSheet, View} from 'react-native';
-import React, {useState} from 'react';
+import {View, TouchableOpacity, StyleSheet, Dimensions, ScrollView} from 'react-native';
+import React from 'react';
 import {
-  Text,
-  BarButtons,
   Buttons,
   Headers,
-  Labels,
-  Modals,
+  MyAnimated,
   ScrollViews,
   Spacer,
+  Swipeables,
+  Text,
+  Wrapper,
   Switches,
   TextInputs,
-  Wrapper,
   Icons,
+  Labels,
+  Modals,
+  BarButtons,
 } from '../../../components';
 import {
-  appIcons,
-  appImages,
   appStyles,
   colors,
-  fontSizes,
-  headers,
-  responsiveHeight,
   responsiveWidth,
   sizes,
+  appIcons,
+  responsiveHeight,
+  fontSizes,
 } from '../../../services';
+import {useHooks} from './hooks';
+import {useTranslation} from 'react-i18next';
+import {useSelector} from 'react-redux';
 import {scale, verticalScale} from 'react-native-size-matters';
-import {Options, useHooks} from './hooks';
+import {Options} from './hooks';
+import {getPrivacyContent} from './privacyContent';
+import {getTermsContent} from './termsContent';
+import AccessModalContent from './AccessModalContent';
+console.log('AccessModalContent:', AccessModalContent);
 
-export default function Index() {
+const MODAL_MAX_HEIGHT = Dimensions.get('window').height * 0.8;
+
+const Index = () => {
   const {
+    user,
+    isSaving,
     unitsData,
     LanguageModal,
     LanguageModalData,
     handleToggleLocationModal,
-    AccessModal,
+    AccessModal: accessModalVisible,
     handleToggleAccessModal,
     PrivacyPolicyModal,
     handleTogglePrivacyPolicyModal,
@@ -46,17 +57,54 @@ export default function Index() {
     handleToggleIconSealth,
     IconVipData,
     IconSealthData,
+    toggleNotification,
+    toggleDiscoverVisibility,
+    toggleCallVisibility,
+    updateUnit,
+    updateLanguage,
+    handleIconReset,
   } = useHooks();
+  const {t} = useTranslation();
+
+  // Get current language display name
+  const getCurrentLanguageName = () => {
+    const currentLang = user?._settings?.currentLang || 'en';
+    const langMap = {
+      de: 'German',
+      en: 'English',
+      fr: 'French',
+      es: 'Spanish',
+    };
+    return langMap[currentLang] || 'English';
+  };
+
+  // Get notification status text
+  const getNotificationStatus = type => {
+    return user?._settings?.notifications?.[type]
+      ? t('ACTIVATE')
+      : t('NOT_ACTIVATE');
+  };
+
+  // Get discover status text
+  const getDiscoverStatus = () => {
+    return user?._settings?.showInDiscover ? t('SHOW_ME') : t('HIDE_ME');
+  };
+
+  // Get call status text
+  const getCallStatus = () => {
+    return user?._settings?.showCall ? t('ACTIVATE') : t('NOT_ACTIVATE');
+  };
+
   return (
     <Wrapper isMain>
-      <Headers.Primary showBackArrow title={'App - Settings'} />
+      <Headers.Primary showBackArrow title={t('SETTINGS')} />
       <ScrollViews.KeyboardAvoiding>
         <Spacer isSmall />
         {/* Languages Input */}
         <TextInputs.Bordered
-          InputLabel={'Language'}
-          placeholder={'English'}
-          iconSizeRight={scale(24)}
+          InputLabel={t('LANGUAGE')}
+          placeholder={getCurrentLanguageName()}
+          iconSizeRight={24}
           placeholderTextColor={colors.appTextColor2}
           customIconRight={appIcons.Down}
           onPress={handleToggleLocationModal}
@@ -64,29 +112,39 @@ export default function Index() {
         <Spacer isBasic />
         {/* Audio & Video Call Input */}
         <TextInputs.Bordered
-          InputLabel={'Audio & Video Call'}
-          placeholder={'Not Activate'}
+          InputLabel={t('AUDIOANDVIDEOCALL')}
+          placeholder={getCallStatus()}
           placeholderTextColor={colors.appTextColor2}
           customIconRight={appIcons.Down}
           onPress={() => {}}
-          right={<Switches.Custom />}
+          right={
+            <Switches.Custom
+              value={user?._settings?.showCall || false}
+              onValueChange={toggleCallVisibility}
+            />
+          }
         />
         <Spacer isBasic />
         {/* Discover  */}
         <TextInputs.Bordered
-          InputLabel={'Discover'}
-          placeholder={'Show me'}
+          InputLabel={t('DISCOVER')}
+          placeholder={getDiscoverStatus()}
           placeholderTextColor={colors.appTextColor2}
           customIconRight={appIcons.Down}
           onPress={() => {}}
-          right={<Switches.Custom />}
+          right={
+            <Switches.Custom
+              value={user?._settings?.showInDiscover || false}
+              onValueChange={toggleDiscoverVisibility}
+            />
+          }
         />
         <Spacer isBasic />
         {/* App Icon  */}
         <Wrapper gap={responsiveHeight(1)}>
           <TextInputs.Bordered
-            InputLabel={'App Icons'}
-            placeholder={'VIP'}
+            InputLabel={t('APPICONS')}
+            placeholder={t('VIP')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Forward}
             onPress={() => {
@@ -94,8 +152,7 @@ export default function Index() {
             }}
           />
           <TextInputs.Bordered
-            //InputLabel={'App Icons'}
-            placeholder={'Stealth Mode'}
+            placeholder={t('STEALTH_MODE')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Forward}
             onPress={() => {
@@ -108,38 +165,58 @@ export default function Index() {
         {/* Notifications  */}
         <Wrapper gap={responsiveHeight(1)}>
           <TextInputs.Bordered
-            InputLabel={'Notifications'}
-            placeholder={'Chats'}
+            InputLabel={t('NOTIFICATIONS')}
+            placeholder={getNotificationStatus('messages')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={() => {}}
-            right={<Switches.Custom />}
+            right={
+              <Switches.Custom
+                value={user?._settings?.notifications?.messages || false}
+                onValueChange={() => toggleNotification('messages')}
+              />
+            }
           />
           <TextInputs.Bordered
-            placeholder={'Friend Requests'}
+            placeholder={t('FRIENDSREQUEST')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={() => {}}
-            right={<Switches.Custom />}
+            right={
+              <Switches.Custom
+                value={user?._settings?.notifications?.friendRequests || false}
+                onValueChange={() => toggleNotification('friendRequests')}
+              />
+            }
           />
           <TextInputs.Bordered
-            placeholder={'Likes'}
+            placeholder={t('LIKES')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={() => {}}
-            right={<Switches.Custom />}
+            right={
+              <Switches.Custom
+                value={user?._settings?.notifications?.likes || false}
+                onValueChange={() => toggleNotification('likes')}
+              />
+            }
           />
           <TextInputs.Bordered
-            placeholder={'Audio & Video Call'}
+            placeholder={t('AUDIOANDVIDEOCALL')}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={() => {}}
-            right={<Switches.Custom />}
+            right={
+              <Switches.Custom
+                value={user?._settings?.notifications?.call || false}
+                onValueChange={() => toggleNotification('call')}
+              />
+            }
           />
         </Wrapper>
         <Spacer isBasic />
         <Wrapper marginHorizontalBase>
-          <Text isSmall isMediumFont children={'UNITS'} />
+          <Text isSmall isMediumFont children={t('UNITS')} />
           <Spacer isTiny />
         </Wrapper>
         <Wrapper gap={responsiveHeight(1)}>
@@ -160,18 +237,28 @@ export default function Index() {
                 isMedium
                 isRegularFont
                 isTextColor2
-                children={item?.label}
+                children={t(item?.label)}
               />
-              <Icons.WithText
-                direction={'row-reverse'}
-                text={item?.unit}
-                textStyle={{
-                  color: colors.appTextColor2,
-                  fontSize: fontSizes.medium,
-                }}
-                customIcon={appIcons.Down}
-                iconSize={scale(24)}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  // Toggle between options
+                  const currentValue = item.unit;
+                  const options = item.options;
+                  const currentIndex = options.indexOf(currentValue);
+                  const nextIndex = (currentIndex + 1) % options.length;
+                  updateUnit(item.type, options[nextIndex]);
+                }}>
+                <Icons.WithText
+                  direction={'row-reverse'}
+                  text={item?.unit}
+                  textStyle={{
+                    color: colors.appTextColor2,
+                    fontSize: fontSizes.medium,
+                  }}
+                  customIcon={appIcons.Down}
+                  iconSize={24}
+                />
+              </TouchableOpacity>
             </Wrapper>
           ))}
         </Wrapper>
@@ -179,23 +266,23 @@ export default function Index() {
         {/* Privacy  */}
         <Wrapper gap={responsiveHeight(1)}>
           <TextInputs.Bordered
-            InputLabel={'Privacy'}
-            placeholder={'Privacy Policy'}
-            iconSizeRight={scale(24)}
+            InputLabel={t('PRIVACY')}
+            placeholder={t('PRICAVYPOLICY')}
+            iconSizeRight={24}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={handleTogglePrivacyPolicyModal}
           />
           <TextInputs.Bordered
-            placeholder={'Terms & Conditions'}
-            iconSizeRight={scale(24)}
+            placeholder={t('TERMSOFSERVICE')}
+            iconSizeRight={24}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={handleToggleTermsConditionsModal}
           />
           <TextInputs.Bordered
-            placeholder={'Access'}
-            iconSizeRight={scale(24)}
+            placeholder={t('ACCESS')}
+            iconSizeRight={24}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
             onPress={handleToggleAccessModal}
@@ -216,63 +303,28 @@ export default function Index() {
           <ScrollViews.KeyboardAvoiding>
             <Wrapper>
               <Labels.ModalLabelWithCross
-                Title={'Language'}
+                Title={t('LANGUAGE')}
                 onPress={handleToggleLocationModal}
               />
               <Spacer isBasic />
               <BarButtons.IconWithTextSelectOptions
                 NoColorOfIcon
                 Data={LanguageModalData}
+                onPress={item => updateLanguage(item.value)}
+                selectedValue={user?._settings?.currentLang}
               />
             </Wrapper>
           </ScrollViews.KeyboardAvoiding>
         </View>
-        <Wrapper style={styles.buttonONtheBottom} paddingVerticalBase>
-          <Buttons.Colored text={'Apply'} onPress={handleToggleLocationModal} />
-        </Wrapper>
       </Modals.PopupPrimary>
 
       {/* Access Modal */}
       <Modals.PopupPrimary
         isBlur
-        visible={AccessModal}
+        visible={accessModalVisible}
         toggle={handleToggleAccessModal}
         children={
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'Access'}
-              onPress={handleToggleAccessModal}
-            />
-            <Wrapper marginHorizontalBase>
-              <Text
-                isRegular
-                isRegularFont
-                children={'2 Factor Authentication'}
-              />
-            </Wrapper>
-            <Spacer height={responsiveHeight(5)} />
-            <Text
-              alignTextCenter
-              isRegular
-              isRegularFont
-              children={'Email: dean@dexxire.com'}
-            />
-            <Spacer isBasic />
-            <Buttons.Colored text={'Update email'} />
-            <Spacer isSmall />
-            <Buttons.Colored text={'Change Password'} />
-            <Spacer height={verticalScale(180)} />
-            <Wrapper paddingVerticalBase>
-              <Text
-                alignTextCenter
-                isPrimaryColor
-                isMedium
-                isMediumFont
-                children={'Delete My Profile'}
-                onPress={handleToggleAccessModal}
-              />
-            </Wrapper>
-          </Wrapper>
+          <AccessModalContent user={user} onClose={handleToggleAccessModal} />
         }
       />
       {/* Terms & Conditions Modal */}
@@ -281,71 +333,24 @@ export default function Index() {
         disableSwipe
         visible={TermsConditionsModal}
         toggle={handleToggleTermsConditionsModal}>
-        <ScrollViews.KeyboardAvoiding>
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'Terms & Conditions'}
-              onPress={handleToggleTermsConditionsModal}
-            />
-            <Wrapper marginHorizontalBase>
-              <Text isRegular isRegularFont isTextColor2>
-                General Terms and Conditions of the DESIRES app Valid version
-                November 22, 2024.{'\n'}
-                <Spacer isMedium />
-                <Text isPrimaryColor isMediumFont>
-                  Introduction:{'\n'}
-                </Text>
-                By accessing the DESIRES app and the connected websites
-                (hereinafter referred to as "websites"), you agree to these
-                terms of use and the privacy policy
-                (https://desires.app/privacy-policy). The general terms and
-                conditions consist of 5 essential parts:{'\n'}
-                <Spacer isBasic />
-                I. Community Guidelines{'\n'}
-                <Spacer isBasic />
-                II. DESIRES User Agreement{'\n'}
-                <Spacer isBasic />
-                III. Legal terms of use {'\n'}
-                <Spacer isBasic />
-                IV. Terms and conditions for messages
-                {'\n'}
-                <Spacer isBasic />
-                V. EULA - Licensed Application End User License Agreement (Apple
-                AppStore)
-                {'\n'}
-                <Spacer isBasic />
-                By registering with DESIRES you agree to all terms and
-                conditions. A violation can lead to immediate exclusion from our
-                community.
-                {'\n'}
-                <Spacer isBasic />
-                1. COMMUNITY GUIDELINES
-                {'\n'}Our community thrives on honesty, friendliness, and
-                respect. We want to create a space in which users can express
-                themselves freely as long as they do not insult or harass
-                others. At DESIRES, everyone is valued equally. Please be
-                considerate, think before you act, and abide by our Community
-                Guidelines.
-                {'\n'}
-                <Spacer isBasic />
-                <Text isPrimaryColor isMediumFont>
-                  Prohibited behavior:
-                </Text>
-                {'\n'}
-                <Spacer isBasic />
-                1. Profile picture
-                {'\n'}
-                <Spacer isBasic />
-                The profile picture must be a picture of yourself. You should be
-                clearly recognizable, i.e., your face should be visible. If you
-                are concerned about your privacy, book an invisible membership.
-                These have been specially developed for this case and make you
-                invisible. You see every member, but you are
+        <Wrapper style={{maxHeight: MODAL_MAX_HEIGHT}}>
+          <Labels.ModalLabelWithCross
+            Title={t('TERMSOFSERVICE')}
+            onPress={handleToggleTermsConditionsModal}
+          />
+          <ScrollViews.KeyboardAvoiding
+            contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 32}}>
+            <View style={{paddingHorizontal: 4}}>
+              <Text
+                isRegular
+                isRegularFont
+                isTextColor2
+                style={{paddingHorizontal: 20, paddingBottom: 48}}>
+                {getTermsContent(user?._settings?.currentLang || 'en')}
               </Text>
-            </Wrapper>
-          </Wrapper>
-          <Spacer isBasic />
-        </ScrollViews.KeyboardAvoiding>
+            </View>
+          </ScrollViews.KeyboardAvoiding>
+        </Wrapper>
       </Modals.PopupPrimary>
       {/* Privacy Policy Modal */}
       <Modals.PopupPrimary
@@ -353,58 +358,24 @@ export default function Index() {
         disableSwipe
         visible={PrivacyPolicyModal}
         toggle={handleTogglePrivacyPolicyModal}>
-        <ScrollViews.KeyboardAvoiding>
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'Privacy Policy'}
-              onPress={handleTogglePrivacyPolicyModal}
-            />
-            <Wrapper marginHorizontalBase>
-              <Text>
-                <Text isMediumFont isPrimaryColor>
-                  Privacy Policy of DESIRES App Inc.
-                </Text>
-                {'\n'}
-                <Spacer isBasic />
-                Effective Version: 22.11.2024
-                {'\n'}
-                This Privacy Policy explains how DESIRES App Inc. (hereinafter
-                "we", "us", or "DESIRES") collects, uses, stores, and shares
-                personal and non-personal data of users (hereinafter "users" or
-                "you") of the DESIRES App and associated websites (hereinafter
-                "Website" and "App"). We respect your privacy and are committed
-                to protecting your data. This Privacy Policy applies to all
-                products and services offered by DESIRES, including the Website
-                and the App.
-                {'\n'}
-                <Spacer isBasic />
-                <Text isMediumFont isPrimaryColor>
-                  1. Collection of Personal Data
-                </Text>
-                {'\n'}
-                <Spacer isBasic />
-                We collect personal data in various ways to provide and improve
-                our services. This data may be collected through our iOS and
-                Android apps as well as through the Website.
-                {'\n'}
-                The personal data we collect includes:
-                {'\n'}- Name: Your full name provided during registration or
-                through interactions with the App and Website.
-                {'\n'}- Username: The name you choose to identify yourself
-                within the App or on the Website.
-                {'\n'}- Email Address: The email address you provide during
-                registration or for communication with us.
-                {'\n'}- Phone Number: Your phone number, which you provide
-                during registration or to use certain features (e.g., SMS
-                notifications).
-                {'\n'}- Location Data: We may collect your location if you
-                enable this feature in the settings of your App to offer
-                geo-specific features or personalize certain services.
+        <Wrapper style={{maxHeight: MODAL_MAX_HEIGHT}}>
+          <Labels.ModalLabelWithCross
+            Title={t('PRIVACYPOLICY')}
+            onPress={handleTogglePrivacyPolicyModal}
+          />
+          <ScrollViews.KeyboardAvoiding
+            contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 32}}>
+            <View style={{paddingHorizontal: 4}}>
+              <Text
+                isRegular
+                isRegularFont
+                isTextColor2
+                style={{paddingHorizontal: 20, paddingBottom: 48}}>
+                {getPrivacyContent(user?._settings?.currentLang || 'en')}
               </Text>
-            </Wrapper>
-          </Wrapper>
-          <Spacer isBasic />
-        </ScrollViews.KeyboardAvoiding>
+            </View>
+          </ScrollViews.KeyboardAvoiding>
+        </Wrapper>
       </Modals.PopupPrimary>
       {/* Vip Mode */}
       <Modals.PopupPrimary
@@ -412,43 +383,47 @@ export default function Index() {
         disableSwipe
         visible={AppIconsVip}
         toggle={handleToggleIconVip}
+        headerTitle={t('VIP_APP_ICONS')}
+        onPressClose={handleToggleIconVip}
+        wrapContentInScroll={false}
         mainContainerStyle={{height: responsiveHeight(75)}}
         containerStyle={{flex: 1}}>
-        <ScrollViews.KeyboardAvoiding>
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'App Icons - VIP'}
-              onPress={handleToggleIconVip}
-            />
-          </Wrapper>
-          <Spacer isSmall />
+        {/* Scrollable Content */}
+        <ScrollView 
+          style={{flex: 1}}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always">
           <Wrapper marginHorizontalBase>
             <Text isRegular isRegularFont>
-              As a VIP member, you not only stand out with a larger profile in
-              the Desires app, but also on your smartphone. Only you as a VIP
-              can choose from 2 different icons with a VIP logo.
+              {(t('VIPAPPICONDESCRIPTION') || '').replace(/<br\s*\/?>/gi, '\n')}
             </Text>
           </Wrapper>
           <Spacer isSmall />
-          <Wrapper style={{height: responsiveHeight(58.5)}}>
+          <Wrapper
+            style={{
+              paddingBottom: responsiveHeight(10),
+            }}>
             {IconVipData.map((item, index) => (
               <Options
                 key={index}
                 //isRounded
                 title={item?.title}
-                customleftIcon={appIcons.applogo}
+                customleftIcon={item?.customleftIcon}
                 leftIconColor={item?.leftIconColor}
                 leftColor={item?.leftColor}
-                leftIconSize={scale(20)}
+                leftIconSize={scale(40)}
                 description={item?.description}
                 rightText={item?.rightText}
+                onPressRight={item?.onPressRight}
               />
             ))}
           </Wrapper>
-          <Wrapper style={styles.buttonONtheBottom}>
-            <Buttons.Colored text={'Reset'} />
-          </Wrapper>
-        </ScrollViews.KeyboardAvoiding>
+        </ScrollView>
+        
+        {/* Fixed Button at Bottom */}
+        <Wrapper style={styles.buttonONtheBottom}>
+          <Buttons.Colored text={t('RESET')} onPress={handleIconReset} />
+        </Wrapper>
       </Modals.PopupPrimary>
       {/* Stealth Mode */}
       <Modals.PopupPrimary
@@ -456,59 +431,58 @@ export default function Index() {
         disableSwipe
         visible={AppIconSealth}
         toggle={handleToggleIconSealth}
+        headerTitle={t('STEALTH_APP_ICONS')}
+        onPressClose={handleToggleIconSealth}
+        wrapContentInScroll={false}
         mainContainerStyle={{height: responsiveHeight(75)}}
         containerStyle={{flex: 1}}>
-        <ScrollViews.KeyboardAvoiding>
-          <Wrapper>
-            <Labels.ModalLabelWithCross
-              Title={'App Icons - Sealth Icons'}
-              onPress={handleToggleIconSealth}
-            />
-          </Wrapper>
-          <Spacer isSmall />
+        {/* Scrollable Content */}
+        <ScrollView 
+          style={{flex: 1}}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always">
           <Wrapper marginHorizontalBase>
             <Text isRegular isRegularFont>
-              As a Phantom or Celebrity member you have the opportunity to
-              disguise the Desires app. You can choose from 10 different topics.
-              The app icon changes, as well as the app name. This means you can
-              install Desires completely discreetly on your smartphone.{'\n'}
-              During your Phantom or celebrity membership, all ICONS are free
-              for you.{'\n'}
-              If you are not yet Phantom or Celebrity member, each ICON costs 10
-              Coins.{'\n'}
+              {(t('STEALTHICONDESCRIPTION') || '').replace(/<br\s*\/?>/gi, '\n')}
             </Text>
           </Wrapper>
           <Spacer isSmall />
-          <Wrapper style={{height: responsiveHeight(58.5)}}>
+          <Wrapper
+            style={{
+              paddingBottom: responsiveHeight(10),
+            }}>
             {IconSealthData.map((item, index) => (
               <Options
                 key={index}
                 title={item?.title}
+                customleftIcon={item?.customleftIcon}
+                isRounded
                 leftColor={item?.leftColor}
-                //leftIconSize={scale(55)}
+                leftIconSize={scale(48)}
                 description={item?.description}
                 rightText={item?.rightText}
+                onPressRight={item?.onPressRight}
               />
             ))}
+            <Spacer isBasic />
+            <Buttons.Colored text={t('RESET')} onPress={handleIconReset} />
           </Wrapper>
-          <Wrapper style={styles.buttonONtheBottom}>
-            <Buttons.Colored text={'Reset'} />
-            <Spacer isSmall />
-          </Wrapper>
-        </ScrollViews.KeyboardAvoiding>
+        </ScrollView>
       </Modals.PopupPrimary>
     </Wrapper>
   );
-}
+};
 
 const styles = StyleSheet.create({
   buttonONtheBottom: {
     flex: 1,
     position: 'absolute',
-    bottom: 0,
+    bottom: responsiveHeight(12),
     left: 0,
     right: 0,
     paddingVertical: sizes.smallMargin,
     marginVertical: sizes.smallMargin,
   },
 });
+
+export default Index;

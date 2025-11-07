@@ -5,8 +5,25 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+# Setup react-native-permissions
+require File.join(File.dirname(`node --print "require.resolve('react-native-permissions/package.json')"`), "scripts/setup")
+
+use_frameworks! :linkage => :static
+
+platform :ios, '14.0'
 prepare_react_native_project!
+
+setup_permissions([
+  'AppTrackingTransparency',
+  'Camera',
+  'LocationAlways',
+  'LocationWhenInUse',
+  'MediaLibrary',
+  'Microphone',
+  'Notifications',
+  'PhotoLibrary',
+  'PhotoLibraryAddOnly'
+])
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -36,5 +53,13 @@ target 'Desires' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        if target.name == 'gRPC-C++'
+          config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        end
+      end
+    end
   end
 end

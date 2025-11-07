@@ -72,3 +72,6 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Firebase - Generated file (do not commit)
+ios/Desires/GoogleService-Info.plist

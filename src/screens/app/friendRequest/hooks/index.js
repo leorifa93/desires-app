@@ -1,13 +1,10 @@
+import React, { useMemo, useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser } from '../../../../store/actions/auth';
+import { getUsersByIds, acceptFriendRequest, rejectFriendRequest } from '../../../../services/firebaseUtilities/user';
+import firestore from '@react-native-firebase/firestore';
 import {
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {
-  appFonts,
-  appIcons,
   appImages,
   appStyles,
   colors,
@@ -15,7 +12,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../services';
-import {scale} from 'react-native-size-matters';
+import { scale } from 'react-native-size-matters';
 import {
   Icons,
   Images,
@@ -24,90 +21,223 @@ import {
   Text,
   Wrapper,
 } from '../../../../components';
-import {useMemo, useState} from 'react';
+import { useTranslation } from 'react-i18next';
+import { navigate } from '../../../../navigation/rootNavigation';
+import { routes } from '../../../../services';
 
 export function useHooks() {
-  const FriendRenderDetail = ({Detail}) => {
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const user = useSelector(state => state.auth.user);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState({});
+
+  useEffect(() => {
+    loadFriendRequests();
+  }, [user?.id, user?._friendRequests]);
+
+  const loadFriendRequests = async () => {
+    try {
+      setLoading(true);
+      if (user?._friendRequests && user._friendRequests.length > 0) {
+        const requestsData = await getUsersByIds(user._friendRequests);
+        setFriendRequests(requestsData);
+      } else {
+        setFriendRequests([]);
+      }
+    } catch (error) {
+      console.error('Error loading friend requests:', error);
+      setFriendRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // loadFriendRequests function removed - now handled by real-time snapshot
+
+  const handleAcceptRequest = async (requestUser) => {
+    try {
+      setProcessing(prev => ({ ...prev, [requestUser.id]: 'accepting' }));
+      
+      await acceptFriendRequest(requestUser, user);
+      
+      // Simply filter out the accepted request from the list
+      setFriendRequests(prev => prev.filter(req => req.id !== requestUser.id));
+      
+      // Update Redux for badge updates
+      const updatedFriendRequests = user._friendRequests?.filter(id => id !== requestUser.id) || [];
+      const updatedFriendsList = [...(user._friendsList || []), requestUser.id];
+      const updatedUser = {
+        ...user,
+        _friendRequests: updatedFriendRequests,
+        _friendsList: updatedFriendsList
+      };
+      dispatch(setUser(updatedUser));
+      
+      console.log('Friend request accepted and filtered from list');
+      
+      Alert.alert(
+        t('SUCCESS') || 'Success',
+        t('FRIEND_REQUEST_ACCEPTED') || 'Friend request accepted!',
+        [
+          {
+            text: t('OK') || 'OK',
+            onPress: () => {
+              // Force reload friend requests to ensure UI is updated
+              loadFriendRequests();
+              // Navigate to friends tab to show the new friend
+              navigate(routes.friends, { activeTab: 'friends' });
+            }
+          }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      Alert.alert(
+        t('ERROR') || 'Error',
+        t('FRIEND_REQUEST_ACCEPT_FAILED') || 'Failed to accept friend request'
+      );
+    } finally {
+      setProcessing(prev => ({ ...prev, [requestUser.id]: null }));
+    }
+  };
+
+  const handleRejectRequest = async (requestUser) => {
+    try {
+      setProcessing(prev => ({ ...prev, [requestUser.id]: 'rejecting' }));
+      
+      await rejectFriendRequest(requestUser, user);
+      
+      // Simply filter out the rejected request from the list
+      setFriendRequests(prev => prev.filter(req => req.id !== requestUser.id));
+      
+      // Update Redux for badge updates
+      const updatedFriendRequests = user._friendRequests?.filter(id => id !== requestUser.id) || [];
+      const updatedUser = {
+        ...user,
+        _friendRequests: updatedFriendRequests
+      };
+      dispatch(setUser(updatedUser));
+      
+      console.log('Friend request rejected and filtered from list');
+      
+      // Show success message
+      Alert.alert(
+        t('SUCCESS') || 'Success',
+        t('FRIEND_REQUEST_REJECTED') || 'Friend request rejected'
+      );
+      
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      Alert.alert(
+        t('ERROR') || 'Error',
+        t('FRIEND_REQUEST_REJECT_FAILED') || 'Failed to reject friend request'
+      );
+    } finally {
+      setProcessing(prev => ({ ...prev, [requestUser.id]: null }));
+    }
+  };
+
+  const FriendRenderDetail = ({ Detail }) => {
     const styles = StyleSheet.create({
       BadgeMainContainer: {
-        height: scale(8),
-        width: scale(8),
-        top: scale(5),
-        left: scale(39),
-        backgroundColor: colors.appBgColor1,
+        bottom: scale(2),
+        right: scale(2),
         borderRadius: responsiveWidth(100),
-        //padding: scale(1.5),
-        //justifyContent: 'center',
-        //alignItems: 'center',
-      },
-      BadgeInnerContainer: {
-        flex: 1,
-        margin: scale(1.1),
-        // alignSelf: 'center',
-        //left: scale(0.06),
-        backgroundColor: '#13C634',
-        borderRadius: responsiveWidth(100),
-      },
-      OptionMainContainer: {
-        height: responsiveHeight(18),
-        width: responsiveWidth(36),
-        top: responsiveHeight(5),
-        right: responsiveWidth(7),
-        backgroundColor: colors.appBgColor1,
-        ...appStyles.shadowDark,
-        borderRadius: responsiveWidth(3),
+        borderWidth: 2,
+        borderColor: colors.appBgColor1,
+        backgroundColor: colors.appOnlineColor,
+        height: scale(16),
+        width: scale(16),
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: scale(18),
         zIndex: 2,
       },
     });
+
+    const isProcessing = processing[Detail?.id];
+
     return (
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <Wrapper
           flexDirectionRow
           marginHorizontalBase
-          //backgroundColor={'blue'}
           alignItemsCenter>
           {/* Image */}
           <Wrapper>
-            <Images.Round source={appImages.image4} size={scale(48)} />
-            {/* Bage */}
+            <Images.Round 
+              source={Detail?.profilePictures?.thumbnails?.big ? 
+                { uri: Detail.profilePictures.thumbnails.big } : 
+                appImages.image4
+              } 
+              size={scale(48)} 
+            />
+            {/* Badge */}
             {Detail?.ShowOnline ? (
               <Wrapper isAbsolute style={styles.BadgeMainContainer}>
                 <Wrapper style={styles.BadgeInnerContainer} />
               </Wrapper>
             ) : null}
           </Wrapper>
-          {/* Text Name And Id */}
+          
+          {/* Text Name And Info */}
           <Wrapper
             marginHorizontalSmall
-            // backgroundColor={'red'}
-            style={{width: responsiveWidth(45)}}>
+            style={{ width: responsiveWidth(45) }}>
             <Text isRegular isBoldFont>
-              {Detail?.name}, {Detail?.age}
+              {Detail?.username || Detail?.name}, {Detail?.age}
             </Text>
             <Text isSmall isRegularFont isTextColor2>
-              {Detail?.location} - {Detail?.distance}km
+              {Detail?.currentLocation?.city || Detail?.location} - {Detail?.distance}km
             </Text>
           </Wrapper>
-          {/* Icons of Chat and the options */}
+          
+          {/* Action Buttons */}
           <Wrapper
             flex={1}
-            // backgroundColor={'green'}
-            style={{height: responsiveHeight(4)}}>
+            style={{ height: responsiveHeight(4) }}>
+            <Wrapper flexDirectionRow justifyContentSpaceAround>
+              <TouchableOpacity
+                onPress={() => handleAcceptRequest(Detail)}
+                disabled={isProcessing}
+                style={{ opacity: isProcessing === 'accepting' ? 0.5 : 1 }}>
+                <Icons.WithText
+                  direction={'row-reverse'}
+                  iconName={'checkmark-outline'}
+                  iconType={'ionicon'}
+                  tintColor={colors.appOnlineColor}
+                  iconSize={scale(18)}
+                  title={isProcessing === 'accepting' ? t('ACCEPTING') || 'Accepting...' : t('ACCEPT') || 'Accept'}
+                  titleStyle={{
+                    color: colors.appOnlineColor,
+                    fontSize: fontSizes.small,
+                    fontFamily: appStyles.fontMedium,
+                  }}
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => handleRejectRequest(Detail)}
+                disabled={isProcessing}
+                style={{ opacity: isProcessing === 'rejecting' ? 0.5 : 1 }}>
             <Icons.WithText
               direction={'row-reverse'}
               iconName={'close-outline'}
               iconType={'ionicon'}
               tintColor={colors.appBorderColor1}
               iconSize={scale(18)}
-              title={'Accept'}
+                  title={isProcessing === 'rejecting' ? t('REJECTING') || 'Rejecting...' : t('REJECT') || 'Reject'}
               titleStyle={{
-                color: colors.appOnlineColor,
+                    color: colors.appBorderColor1,
                 fontSize: fontSizes.small,
-                //the need to be changed into proxima Nova
-                fontFamily: appFonts.appTextMedium,
+                    fontFamily: appStyles.fontMedium,
               }}
             />
+              </TouchableOpacity>
+            </Wrapper>
           </Wrapper>
         </Wrapper>
         <Spacer isSmall />
@@ -123,36 +253,7 @@ export function useHooks() {
     );
   };
 
-  const data = useMemo(() => [
-    {
-      name: 'Jaydon Lubin',
-      age: 48,
-      location: 'Miami, FL',
-      distance: 12,
-      ShowOnline: true,
-    },
-    {
-      name: 'Ann Stanton',
-      age: 29,
-      location: 'Miami Beach, FL',
-      distance: 8,
-      ShowOnline: true,
-    },
-    {name: 'Mira Lubin', age: 24, location: 'Chicago, USA', distance: 2},
-    {name: 'Anika Kenter', age: 28, location: '5 Depot Drive, FL', distance: 7},
-    {
-      name: 'Kierra Rhiel Madsen',
-      age: 49,
-      location: '7278 Grandrose, FL',
-      distance: 4,
-      ShowOnline: true,
-    },
-    {
-      name: 'Kianna Stanton',
-      age: 27,
-      location: '831 St Louis, FL',
-      distance: 9,
-    },
-  ]);
-  return {FriendRenderDetail, data};
+  const data = friendRequests;
+
+  return { FriendRenderDetail, data, loading, loadFriendRequests };
 }

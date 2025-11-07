@@ -5,23 +5,177 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Desires</string>
+	<string>DSRS</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>standard</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>standard</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>cl</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>cl</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>flight</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>flight</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>gym</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>gym</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>healthcare</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>healthcare</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>mlsnews</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>mlsnews</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>navigator</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>navigator</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>nfl</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>nfl</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>nflnews</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>nflnews</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>taxi</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>taxi</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>vip</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>vip</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>vipblack</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>vipblack</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+			<key>wifi</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>wifi</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
+		</dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>AppIcon60x60</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0</string>
+				</array>
+			</dict>
+		</array>
+	</dict>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -31,13 +185,43 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We use the camera for taking profile photos, sharing images, and for video calls.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We use your location to show nearby users and improve location-based features like maps and search.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>We use your location to show nearby users and improve location-based features like maps and search.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We use the microphone for voice messages and audio/video calls.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We save photos and videos to your library when you download media from chats or export content.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use your photo library to let you select and upload photos to your profile and chat.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app does not access your Apple Music library. This permission is required by a third-party library.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use tracking data to personalize the app and improve your experience. The data is shared with our partners (Google Analytics/Firebase) for analysis.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Roboto-Regular.ttf</string>
+		<string>Roboto-Bold.ttf</string>
+		<string>Roboto-Medium.ttf</string>
+		<string>Roboto-Light.ttf</string>
+		<string>Montserrat-Regular.ttf</string>
+		<string>Montserrat-Bold.ttf</string>
+		<string>Montserrat-Medium.ttf</string>
+		<string>Montserrat-Light.ttf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
+	</array>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -45,18 +229,20 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIRequiresFullScreen</key>
+	<false/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Montserrat-Bold.ttf</string>
-		<string>Montserrat-Light.ttf</string>
-		<string>Montserrat-Medium.ttf</string>
-		<string>Montserrat-Regular.ttf</string>
-		<string>Roboto-Bold.ttf</string>
-		<string>Roboto-Light.ttf</string>
-		<string>Roboto-Medium.ttf</string>
-		<string>Roboto-Regular.ttf</string>
-	</array>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+	<key>FIREBASE_ANALYTICS_COLLECTION_DEACTIVATED</key>
+	<true/>
 </dict>
 </plist>

@@ -58,3 +58,8 @@ const getAuthToken = () => {
 };
 
 export default api;
+
+// Convenience user API helpers
+export const userApi = {
+    deleteUser: (userId) => api.delete(`/users/${userId}`),
+};

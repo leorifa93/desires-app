@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
   Pressable,
 } from 'react-native';
-import {Badge, Icon} from '@rneui/base';
+import {Badge} from '@rneui/base';
+import { Icon } from '@rneui/themed';
 import {
   colors,
   appStyles,
@@ -92,7 +93,12 @@ export function Button({
       ]}>
       {svgIcon ? (
         <Wrapper style={iconStyle}>
-          <SvgIcon height={defaulIconSize} width={defaulIconSize} />
+          <SvgIcon 
+            height={defaulIconSize} 
+            width={defaulIconSize} 
+            size={defaulIconSize}
+            color={iconColor ? iconColor : colors.appTextColor1}
+          />
         </Wrapper>
       ) : customIcon ? (
         <Custom
@@ -214,11 +220,10 @@ export function WithText({
         />
       ) : (
         <Icon
-          name={iconName ? iconName : 'email'}
-          type={iconType ? iconType : 'material-community'}
+          name={iconName ? iconName : 'male-outline'}
+          type={iconType ? iconType : 'ionicon'}
           size={defaulIconSize}
           color={tintColor ? tintColor : colors.appTextColor1}
-          iconStyle={iconStyle}
         />
       )}
       <Wrapper

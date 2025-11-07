@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 // import { Wrapper, Icons, Text } from '..'
 import Wrapper from '../wrapper';
 import * as Icons from '../icons';
@@ -128,13 +128,24 @@ export const Secondary = ({value, onPress}) => {
   );
 };
 
-export const Custom = ({}) => {
-  const [SwitchOn, setSwitchOn] = useState(false);
+export const Custom = ({value, onValueChange}) => {
+  const [SwitchOn, setSwitchOn] = useState(value || false);
+
+  // Update local state when external value changes
+  useEffect(() => {
+    setSwitchOn(value || false);
+  }, [value]);
+
+  const handleToggle = () => {
+    const newValue = !SwitchOn;
+    setSwitchOn(newValue);
+    if (onValueChange) {
+      onValueChange(newValue);
+    }
+  };
+
   return (
-    <Pressable
-      onPress={() => {
-        setSwitchOn(!SwitchOn);
-      }}>
+    <Pressable onPress={handleToggle}>
       <Wrapper
         justifyContentCenter
         style={{

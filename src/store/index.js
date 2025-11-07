@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 let persistConfig = {
   key: 'root',
   storage: AsyncStorage,
+  whitelist: ['auth'], // Only persist auth state
   //blacklist: ['app']
 };
 
@@ -44,4 +45,7 @@ const store = configureStore(
   // applyMiddleware(...middleWare)
 );
 
+const persistor = persistStore(store);
+
 export default store;
+export { persistor };

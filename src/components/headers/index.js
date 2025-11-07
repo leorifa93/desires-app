@@ -22,7 +22,7 @@ import Spacer from '../spacer';
 import * as StatusBars from '../statusBars';
 import {Images, Logos} from '..';
 import {ZoomIn} from 'react-native-reanimated';
-import {Icon} from '@rneui/base';
+import {Icon, Badge} from '@rneui/base';
 import {scale} from 'react-native-size-matters';
 
 // export const Primary = ({ onBackPress, title, right, left, showBackArrow,shadow,titleStyle,titleContainerStyle,containerStyle }) => {
@@ -205,7 +205,10 @@ export function Common({
   StatusBarsLight,
   MainBackgroundColor,
   Title,
+  TitleStyle,
   NoProfile,
+  rightContainerStyle,
+  titleAlignRight,
 }) {
   const {statusBarHeight, headerHeight} = useSizes();
   const defaultTintColor = !invertColors
@@ -239,18 +242,47 @@ export function Common({
         justifyContentSpaceBetween
         // backgroundColor={'red'}
         marginHorizontalBase>
-        {Title ? <Text isSmallTitle children={Title} /> : <Logos.CustomBlack />}
+        {Title ? <Text isSmallTitle style={TitleStyle} children={Title} /> : <Logos.CustomBlack />}
         <Wrapper //backgroundColor={'blue'}
           alignItemsCenter
-          flexDirectionRow>
+          flexDirectionRow
+          style={[{ marginLeft: 'auto' }, rightContainerStyle]}>
           {RightButtons
             ? RightButtons.map((item, index) =>
                 item?.profile ? (
                   <TouchableOpacity key={index} onPress={item?.onPress}>
-                    <Images.Round
-                      source={item?.profile}
-                      size={responsiveWidth(11)}
-                    />
+                    <Wrapper>
+                      <Images.Round
+                        source={{uri: item?.profile}}
+                        size={responsiveWidth(11)}
+                      />
+                      {item?.showBadge && item?.badgeValue > 0 ? (
+                        <Wrapper
+                          isAbsolute
+                          isCenter
+                          style={{top: -6, right: -6, ...appStyles.shadowExtraDark}}>
+                          <Badge
+                            containerStyle={[appStyles.center]}
+                            value={item.badgeValue}
+                            textStyle={[
+                              appStyles.textTiny,
+                              appStyles.textWhite,
+                              appStyles.fontBold,
+                            ]}
+                            badgeStyle={[
+                              appStyles.center,
+                              {
+                                backgroundColor: colors.appPrimaryColor,
+                                borderWidth: 0,
+                                borderRadius: 100,
+                                minWidth: responsiveWidth(5),
+                                height: responsiveWidth(5),
+                              },
+                            ]}
+                          />
+                        </Wrapper>
+                      ) : null}
+                    </Wrapper>
                   </TouchableOpacity>
                 ) : (
                   <Icons.Button
@@ -264,26 +296,24 @@ export function Common({
                     customPadding={item?.customPadding}
                     isWithBorder={item?.isWithBorder}
                     customIcon={item?.IconName}
+                    svgIcon={item?.svgIcon}
+                    iconName={item?.iconName}
+                    iconType={item?.iconType}
                     onPress={item?.onPress}
                     buttonStyle={[
                       {
                         backgroundColor: colors.appBgColor1,
-                        zIndex:
-                          index == 0
-                            ? 4
-                            : index + 1 === RightButtons.length
-                            ? 0
-                            : index,
+                        zIndex: RightButtons.length - index,
                       },
 
                       !(RightButtons.length == 1) &&
                         RightButtons.length > 2 && {
                           left:
                             index == 0
-                              ? responsiveWidth(3.5)
+                              ? responsiveWidth(6.5)
                               : index + 1 === RightButtons.length
                               ? 0
-                              : responsiveWidth(1.5) * index + 1,
+                              : responsiveWidth((RightButtons.length - 1 - index) * 2.4),
                         },
                       RightButtons.length == 2 && {
                         left: index == 0 ? responsiveWidth(2.5) : 0,

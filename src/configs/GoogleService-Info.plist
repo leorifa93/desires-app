@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.750696506520-jutrcmn886kkdvde41detf5s5sp00q4i</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>750696506520-ude6i1fnj756nfnh1s4f51kdh74nr9nj.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDlrqWERYDKmiaBmM0q_5nyaYxql6xQS5I</string>
+	<key>GCM_SENDER_ID</key>
+	<string>750696506520</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.digiminds.dexxire</string>
+	<key>PROJECT_ID</key>
+	<string>dexxire-dfcba</string>
+	<key>STORAGE_BUCKET</key>
+	<string>dexxire-dfcba.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:750696506520:ios:753fe21a6b1171f518dced</string>
+</dict>
+</plist>

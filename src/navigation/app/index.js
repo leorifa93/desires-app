@@ -12,6 +12,7 @@ const AppNavigation = () => {
       initialRouteName={routes.bottomTab}>
       <AppStack.Screen name={routes.bottomTab} component={BottomTab} />
       <AppStack.Screen name={routes.mySearch} component={App.MySearch} />
+      <AppStack.Screen name={routes.userSearch} component={App.UserSearch} />
       <AppStack.Screen name={routes.buyCoins} component={App.BuyCoins} />
       <AppStack.Screen name={routes.appSetting} component={App.AppSetting} />
       <AppStack.Screen name={routes.position} component={App.Position} />
@@ -29,6 +30,7 @@ const AppNavigation = () => {
       <AppStack.Screen name={routes.chatScreen} component={App.ChatScreen} />
       <AppStack.Screen name={routes.audioCall} component={App.AudioCall} />
       <AppStack.Screen name={routes.videoCall} component={App.VideoCall} />
+      <AppStack.Screen name={routes.incomingCall} component={App.IncomingCall} />
       <AppStack.Screen name={routes.userProfile} component={App.UserProfile} />
       <AppStack.Screen
         name={routes.InComingRequest}
@@ -46,6 +48,34 @@ const AppNavigation = () => {
       <AppStack.Screen
         name={routes.verifyProfile}
         component={App.VerifyProfile}
+      />
+      <AppStack.Screen name={routes.notifications} component={App.Notifications} />
+      
+      {/* Backend Routes */}
+      <AppStack.Screen name={routes.backend} component={App.Backend} />
+      <AppStack.Screen
+        name={routes['backend-image-proof']}
+        component={App.BackendImageProof}
+      />
+      <AppStack.Screen
+        name={routes['backend-verification']}
+        component={App.BackendVerification}
+      />
+      <AppStack.Screen
+        name={routes['backend-sell-history']}
+        component={App.BackendSellHistory}
+      />
+      <AppStack.Screen
+        name={routes['backend-all-users']}
+        component={App.BackendAllUsers}
+      />
+      <AppStack.Screen
+        name={routes['backend-demo-chats']}
+        component={App.BackendDemoChats}
+      />
+      <AppStack.Screen
+        name="EditUserProfile"
+        component={App.EditUserProfile}
       />
     </AppStack.Navigator>
   );

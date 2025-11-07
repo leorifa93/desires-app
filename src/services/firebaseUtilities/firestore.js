@@ -1,5 +1,5 @@
 import firestore from '@react-native-firebase/firestore'
-import { getFirestoreDate } from '../../helper/methods';
+import { getFirestoreDate } from '../helper';
 
 
 
@@ -106,13 +106,19 @@ export const addDocument = async ({ collection, data }) => {
         created_at: getFirestoreDate()
         //created_at: new Date()
     }
-    await firestore()
+    const docRef = await firestore()
         .collection(collection)
         .add(tempData)
-        .then(() => {
+        .then((docRef) => {
             // console.log('Document added');
-            response = data
+            return docRef;
         });
+    
+    // Return the document reference with ID and data
+    response = {
+        id: docRef.id,
+        ...tempData
+    };
     return response
 }
 

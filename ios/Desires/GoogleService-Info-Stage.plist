@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>750696506520-ude6i1fnj756nfnh1s4f51kdh74nr9nj.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyApXmGWmSNtP24sHDyHm4iM4ofCE0ED7mI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>730876300214</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.dating.desires</string>
+	<key>PROJECT_ID</key>
+	<string>dexxire-stage</string>
+	<key>STORAGE_BUCKET</key>
+	<string>dexxire-stage.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:730876300214:ios:5f2f2ede14555d07bc0f17</string>
+</dict>
+</plist>
+

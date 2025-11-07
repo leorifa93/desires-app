@@ -50,7 +50,7 @@ export function PrimarySlider({
         />
       ) : null}
 
-      <Wrapper paddingVerticalBase>
+      <Wrapper paddingVerticalSmall>
         <MultiSlider
           isMulti={isMulti} // Enables multiple markers (2 in this case)
           values={Value} // Array for two marker positions or single value
@@ -72,21 +72,21 @@ export function PrimarySlider({
 const styles = StyleSheet.create({
   PrimaryTrackStyle: {
     backgroundColor: colors.appBorderColor2,
-    height: responsiveHeight(1),
+    height: responsiveHeight(0.5),
     borderRadius: responsiveWidth(100),
   },
   PrimaryMarkerContainerStyle: {
-    top: -19.5,
+    top: -22,
   },
   PrimarySelectedStyle: {
     backgroundColor: colors.appBGColor,
   },
   PrimaryMarkerStyle: {
-    height: scale(30),
-    width: scale(30),
+    height: scale(24),
+    width: scale(24),
     borderRadius: responsiveWidth(100),
     backgroundColor: colors.appBGColor,
-    borderWidth: 3.5,
+    borderWidth: 2,
     borderColor: colors.appBgColor1,
     ...appStyles.shadowDark,
   },

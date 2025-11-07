@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
   Text,
   TextInputs,
@@ -28,178 +28,247 @@ import {
   appStyles,
   useKeyboardStatus,
 } from '../../../services';
-import {useHooks} from './hooks';
-import {Image, Keyboard, StyleSheet, TouchableOpacity} from 'react-native';
-import {Icon} from '@rneui/base';
-import {scale, verticalScale} from 'react-native-size-matters';
-import {navigate} from '../../../navigation/rootNavigation';
-export default function Index({handleCurrentPage}) {
+import { useHooks } from './hooks';
+import { Image, Keyboard, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import { Icon } from '@rneui/base';
+import { scale, verticalScale } from 'react-native-size-matters';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from 'react-i18next';
+import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { version } from '../../../../package.json';
+
+const loginSchema = z.object({
+  email: z.string().email("Ungültige E-Mail-Adresse"),
+  password: z.string().nonempty("Bitte gib ein Passwort ein!"),
+})
+
+export default function Index({ handleCurrentPage }) {
+  const { t } = useTranslation();
   const {
     handleLogin,
     SecurePassword,
     InputFocused,
-    RememberMe,
     LoginIconsData,
     ForgotPasswordModal,
+    isLoggingIn,
+    resetEmail,
+    setResetEmail,
+    isResetting,
     //function
     handleInputFocused,
     handleSecurePassword,
-    handleRememberMe,
     handleForgotPasswordModal,
+    handleResetPassword,
   } = useHooks();
   const isKeyboradOpen = useKeyboardStatus();
+  const {
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+  const signIn = (data) => {
+    handleLogin(data.email, data.password);
+  };
+
   return (
     <Wrapper>
       <Wrapper
         paddingVerticalMedium
         backgroundColor={colors.appBgColor1}
         style={styles.DownMainContainer}>
-        <Wrapper marginHorizontalBase>
-          <Text isSmallTitle children={'Sign In'} />
-          <Spacer isSmall />
-          <Text
-            isRegular
-            isTextColor2
-            style={{}}
-            children={'Enter your email address and password to login.'}
-          />
-        </Wrapper>
-        <Spacer isMedium />
-        <TextInputs.Bordered
-          placeholder={'dean@dexxire.com'}
-          onFocus={value => {
-            value && handleInputFocused({FocusedOn: 'Email'});
-          }}
-          isFocusedContainerColor={InputFocused === 'Email' && colors.black}
-          customIconRight={appIcons.Email}
-          iconSizeRight={responsiveWidth(6.5)}
-          iconColorRight={colors.appTextColor1}
-        />
-        <Spacer isSmall />
-        <TextInputs.Bordered
-          placeholder={'Enter Password'}
-          secureTextEntry={SecurePassword}
-          onFocus={value => {
-            value && handleInputFocused({FocusedOn: 'Password'});
-          }}
-          isFocusedContainerColor={InputFocused === 'Password' && colors.black}
-          iconNameRight={SecurePassword ? 'eye-off' : 'eye'}
-          iconTypeRight={'feather'}
-          iconColorRight={colors.appTextColor1}
-          iconStyleRight={{transform: [{rotate: '180deg'}]}}
-          onPressIconRight={() => {
-            handleSecurePassword();
-          }}
-        />
-        <Spacer isSmall />
-        {/* Remember me Line */}
-        <Wrapper
-          flexDirectionRow
-          alignItemsCenter
-          justifyContentSpaceBetween
-          marginHorizontalBase>
-          <TouchableOpacity
-            onPress={() => {
-              handleRememberMe();
-            }}>
-            <Wrapper
-              flexDirectionRow
-              alignItemsCenter
-              justifyContentSpaceBetween>
-              <Wrapper
-                backgroundColor={
-                  RememberMe ? colors.appPrimaryColor : colors.appBgColor1
-                }
-                isCenter
-                style={{
-                  height: scale(18),
-                  width: scale(18),
-                  borderRadius: responsiveWidth(1),
-                  borderWidth: 1.5,
-                  borderColor: colors.appBorderColor1,
-                  overflow: 'hidden',
-                }}>
-                {RememberMe ? (
-                  <Icon
-                    name="check"
-                    type={'feather'}
-                    size={responsiveWidth(3.5)}
-                    color={colors.appTextColor6}
-                  />
-                ) : null}
-              </Wrapper>
-              <Spacer horizontal isSmall />
-              <Text isRegular isTextColor2 children={'Remember me'} />
-            </Wrapper>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleForgotPasswordModal}>
-            <Text isPrimaryColor isRegular children={'Forgot Password?'} />
-          </TouchableOpacity>
-        </Wrapper>
-        <Spacer isDoubleBase />
-        <Buttons.Colored
-          text={'Login'}
-          onPress={() => {
-            navigate(routes.app);
-          }}
-        />
-        <Spacer isBasic />
-        <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
-          <Lines.Horizontal width={responsiveWidth(20)} />
-          <Spacer horizontal isSmall />
-          <Text isTextColor2 children={'or continue with'} />
-          <Spacer horizontal isSmall />
-          <Lines.Horizontal width={responsiveWidth(20)} />
-        </Wrapper>
-        <Spacer isBasic />
-        {/* Icons for Login */}
-        <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
-          {LoginIconsData.map((item, index) => (
-            <Icons.Button
-              key={index}
-              buttonStyle={styles.LoginIconStyling}
-              iconSize={responsiveWidth(6)}
-              iconName={item?.iconName}
-              iconType={item?.iconType}
-              customIcon={item?.customIcon}
-              iconColor={item?.iconColor}
+          <Wrapper marginHorizontalBase>
+            <Text isSmallTitle children={t('LOGIN')} />
+            <Spacer isSmall />
+            <Text
+              isRegular
+              isTextColor2
+              style={{}}
+              children={t('ENTERLOGIN')}
             />
-          ))}
+          </Wrapper>
+          <Spacer isMedium />
+          <TextInputs.Bordered
+            placeholder={t('EMAIL')}
+            onFocus={value => {
+              value && handleInputFocused({ FocusedOn: 'Email' });
+            }}
+            isFocusedContainerColor={InputFocused === 'Email' && colors.black}
+            customIconRight={appIcons.Email}
+            iconSizeRight={responsiveWidth(6.5)}
+            iconColorRight={colors.appTextColor1}
+            onChangeText={(text) => setValue("email", text)}
+          />
+          <Wrapper
+            flexDirectionRow
+            alignItemsCenter
+            justifyContentSpaceBetween
+            marginHorizontalBase
+          >
+            <Spacer isSmall horizontal />
+            {errors.email && <Text isRegular isPrimaryColor children={errors.email.message} />}
+          </Wrapper>
+          <Spacer isSmall />
+          <TextInputs.Bordered
+            placeholder={t('PASSWORD')}
+            secureTextEntry={SecurePassword}
+            onFocus={value => {
+              value && handleInputFocused({ FocusedOn: 'Password' });
+            }}
+            isFocusedContainerColor={InputFocused === 'Password' && colors.black}
+            right={
+              <TouchableOpacity onPress={handleSecurePassword}>
+                {SecurePassword ? (
+                  <Svg width={responsiveWidth(6)} height={responsiveWidth(6)} viewBox="0 0 24 24" fill="none">
+                    <Path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke={colors.appTextColor1} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke={colors.appTextColor1} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                ) : (
+                  <Svg width={responsiveWidth(6)} height={responsiveWidth(6)} viewBox="0 0 24 24" fill="none">
+                    <Path d="M3 3L21 21" stroke={colors.appTextColor1} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M10.584 10.586A3 3 0 0012 15C13.657 15 15 13.657 15 12c0-.415-.084-.81-.236-1.168" stroke={colors.appTextColor1} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M9.88 4.26A10.78 10.78 0 0112 4c7 0 11 8 11 8a20.7 20.7 0 01-3.24 4.26M6.24 6.24A20.7 20.7 0 001 12s4 8 11 8c1.104 0 2.16-.197 3.156-.56" stroke={colors.appTextColor1} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                )}
+              </TouchableOpacity>
+            }
+            onChangeText={(text) => setValue("password", text)}
+          />
+          <Wrapper
+            flexDirectionRow
+            alignItemsCenter
+            justifyContentSpaceBetween
+            marginHorizontalBase
+          >
+            <Spacer isSmall horizontal />
+            {errors.password && <Text isRegular isPrimaryColor children={errors.password.message} />}
+          </Wrapper>
+          <Spacer isSmall />
+          {/* Forgot Password */}
+          <Wrapper marginHorizontalBase alignItemsFlexEnd>
+            <TouchableOpacity onPress={handleForgotPasswordModal}>
+              <Text isPrimaryColor isRegular children={t('FORGOTPASSWORD')} />
+            </TouchableOpacity>
+          </Wrapper>
+          <Spacer isDoubleBase />
+          <Buttons.Colored
+            text={isLoggingIn ? t('SENDING') : t('LOGIN')}
+            onPress={handleSubmit(signIn)}
+            disabled={isLoggingIn}
+          />
+          <Spacer isBasic />
+          <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
+            <Lines.Horizontal width={responsiveWidth(20)} />
+            <Spacer horizontal isSmall />
+            <Text isTextColor2 children={t('OR')} />
+            <Spacer horizontal isSmall />
+            <Lines.Horizontal width={responsiveWidth(20)} />
+          </Wrapper>
+          <Spacer isBasic />
+          {/* Icons for Login */}
+          <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
+            {LoginIconsData.map((item, index) => (
+              <Pressable
+                key={index}
+                style={[
+                  styles.LoginIconStyling, 
+                  { 
+                    backgroundColor: item.backgroundColor || colors.appBgColor1,
+                    borderWidth: item.borderWidth || 0,
+                    borderColor: item.borderColor || 'transparent',
+                  }
+                ]}
+                onPress={item?.onPress}
+              >
+                {item.svgIcon}
+              </Pressable>
+            ))}
+          </Wrapper>
+          <Spacer isBasic />
+          <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
+            <Text isRegular isTextColor2 alignTextCenter>
+              {t('IAMNEW')}{' '}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                handleCurrentPage({ PageName: 'Sign Up' });
+              }}>
+              <Text isPrimaryColor isMediumFont>
+                {t('REGISTER')}
+              </Text>
+            </TouchableOpacity>
+          </Wrapper>
+          
+          <Spacer isBasic />
+          
+          {/* Terms and Privacy */}
+          <Wrapper alignItemsCenter justifyContentCenter marginHorizontalBase>
+            <Text isRegular isTextColor2 textAlignCenter fontSize={responsiveWidth(3.5)} style={{ textAlign: 'center' }}>
+              {t('BY_SIGNING_IN')}{' '}
+              <TouchableOpacity onPress={() => {}}>
+                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)}>
+                  {t('TERMS_AND_CONDITIONS')}
+                </Text>
+              </TouchableOpacity>
+              {' '}{t('AND')}{' '}
+              <TouchableOpacity onPress={() => {}}>
+                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)}>
+                  {t('PRIVACY_POLICY')}
+                </Text>
+              </TouchableOpacity>
+            </Text>
+          </Wrapper>
+          
+          <Spacer isBase />
+          
+          {/* Version Number */}
+          <Wrapper alignItemsCenter paddingVerticalSmall>
+            <Text isSmall isTextColor3 style={{opacity: 0.5}}>
+              v{version}
+            </Text>
+          </Wrapper>
         </Wrapper>
-      </Wrapper>
       <Modals.PopupPrimary
         visible={ForgotPasswordModal}
         toggle={handleForgotPasswordModal}
         disableSwipe={true}
         isBlur
-        //onKeyborderOpenHeightDown={responsiveHeight(18)}
         children={
           <Wrapper
             style={{
               height: responsiveHeight(58),
             }}>
             <Wrapper
-              //backgroundColor={'red'}
               alignItemsFlexStart
               marginHorizontalBase
-              style={{width: responsiveWidth(90)}}>
-              <Icons.Back
-                color={colors.black}
-                size={responsiveWidth(5)}
-                onPress={handleForgotPasswordModal}
-              />
-              <Spacer isBasic />
-              <Text isTinyTitle children={'Forgot Password?'} />
+              style={{ width: responsiveWidth(90) }}>
+              <TouchableOpacity 
+                onPress={handleForgotPasswordModal} 
+                style={{ 
+                  alignSelf: 'flex-end',
+                  padding: sizes.smallMargin,
+                  marginBottom: sizes.baseMargin,
+                }}
+                activeOpacity={0.7}
+              >
+                <Text isSmallTitle style={{ color: colors.appTextColor1 }}>X</Text>
+              </TouchableOpacity>
+              <Text isTinyTitle children={t('FORGOTPASSWORD')} />
               <Spacer isSmall />
               <Text isRegular isTextColor2>
-                Enter your email address to reset your password!
+                {t('ENTEREMAILTORESET')}
               </Text>
             </Wrapper>
             <Spacer isDoubleBase />
             <TextInputs.Bordered
-              placeholder={'Enter email'}
+              placeholder={t('EMAIL')}
+              value={resetEmail}
+              onChangeText={setResetEmail}
               onFocus={value => {
-                value && handleInputFocused({FocusedOn: 'Forget Email'});
+                value && handleInputFocused({ FocusedOn: 'Forget Email' });
               }}
               isFocusedContainerColor={
                 InputFocused === 'Forget Email' && colors.black
@@ -207,24 +276,28 @@ export default function Index({handleCurrentPage}) {
               customIconRight={appIcons.Email}
               iconSizeRight={responsiveWidth(6.5)}
               iconColorRight={colors.appTextColor1}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
             <Spacer isMedium />
             <Buttons.Colored
-              text={'Reset Password'}
-              onPress={handleForgotPasswordModal}
+              text={isResetting ? t('SENDING') || 'Sending...' : t('RESETPASSWORD')}
+              onPress={handleResetPassword}
+              isLoading={isResetting}
+              disabled={isResetting}
             />
             <Spacer isBase />
             <Wrapper flexDirectionRow alignItemsCenter justifyContentCenter>
               <Text isRegular isTextColor2 alignTextCenter>
-                You remember?{' '}
+                {t('REMEMBEREDPASSWORD')}{' '}
               </Text>
               <TouchableOpacity
                 onPress={() => {
                   handleForgotPasswordModal();
-                  handleCurrentPage({PageName: 'Sign Up'});
+                  handleCurrentPage({ PageName: 'Sign Up' });
                 }}>
                 <Text isPrimaryColor isMediumFont>
-                  Sign Up
+                  {t('SIGNIN')}
                 </Text>
               </TouchableOpacity>
             </Wrapper>

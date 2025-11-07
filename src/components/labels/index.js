@@ -3,6 +3,7 @@ import React from 'react';
 import {Spacer, Text, Wrapper} from '..';
 import {colors, fontSizes, responsiveWidth} from '../../services';
 import {Icon} from '@rneui/base';
+import { CloseSvgIcon } from '../icons/ProfileIcons';
 import {scale} from 'react-native-size-matters';
 
 export function Normal({
@@ -56,12 +57,7 @@ export function ModalLabelWithCross({Title, Description, onPress}) {
           children={Title}
         />
         <TouchableOpacity onPress={onPress}>
-          <Icon
-            name="close-outline"
-            type="ionicon"
-            size={scale(24)}
-            color={colors.appBGColor}
-          />
+          <CloseSvgIcon size={24} color={colors.appBGColor} />
         </TouchableOpacity>
       </Wrapper>
       {Description ? (
