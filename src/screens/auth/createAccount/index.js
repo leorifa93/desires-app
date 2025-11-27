@@ -29,7 +29,9 @@ import { Icon } from '@rneui/base';
 import Svg, { Path } from 'react-native-svg';
 import { navigate } from '../../../navigation/rootNavigation';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { z } from "zod";
+import WebViewModal from '../../../components/WebViewModal';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { version } from '../../../../package.json';
@@ -44,11 +46,45 @@ const registerSchema = z.object({
 });
 
 export default function Index(props) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const user = useSelector(state => state.auth.user);
   const [InputFocused, setInputFocused] = useState('');
   const [SecurePassword, setSecurePassword] = useState(true);
   const [SecurePasswordConfirm, setSecurePasswordConfirm] = useState(true);
   const [isTermsAccepted, setIsTermsAccepted] = useState(true);
+  const [webViewVisible, setWebViewVisible] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('');
+  const [webViewTitle, setWebViewTitle] = useState('');
+  
+  const openTerms = () => {
+    const lang = user?._settings?.currentLang || i18n.language || 'en';
+    const urls = {
+      de: 'https://desires.app/de/agb/',
+      en: 'https://desires.app/terms/',
+      es: 'https://desires.app/es/terminos/',
+      fr: 'https://desires.app/fr/conditions-generales/',
+    };
+    const selectedUrl = urls[lang] || urls.en;
+    console.log('Opening Terms URL:', selectedUrl);
+    setWebViewTitle(t('TERMS_AND_CONDITIONS'));
+    setWebViewUrl(selectedUrl);
+    setWebViewVisible(true);
+  };
+  
+  const openPrivacy = () => {
+    const lang = user?._settings?.currentLang || i18n.language || 'en';
+    const urls = {
+      de: 'https://desires.app/de/datenschutz/',
+      en: 'https://desires.app/privacy-policy/',
+      es: 'https://desires.app/es/politica-de-privacidad/',
+      fr: 'https://desires.app/fr/conditions-generales/',
+    };
+    const selectedUrl = urls[lang] || urls.en;
+    console.log('Opening Privacy URL:', selectedUrl);
+    setWebViewTitle(t('PRIVACY_POLICY'));
+    setWebViewUrl(selectedUrl);
+    setWebViewVisible(true);
+  };
   
   const {
     isCreatingUser,
@@ -266,13 +302,14 @@ export default function Index(props) {
         
         {/* Terms and Privacy (Pflicht - mit Checkbox) */}
         <Wrapper marginHorizontalBase>
-          <TouchableOpacity
-            onPress={() => {
-              setIsTermsAccepted(!isTermsAccepted);
-            }}>
-            <Wrapper
-              flexDirectionRow
-              alignItemsCenter>
+          <Wrapper
+            flexDirectionRow
+            alignItemsCenter>
+            <TouchableOpacity
+              onPress={() => {
+                setIsTermsAccepted(!isTermsAccepted);
+              }}
+              style={{ marginRight: scale(10) }}>
               <Wrapper
                 backgroundColor={
                   isTermsAccepted ? colors.appPrimaryColor : colors.appBgColor1
@@ -285,7 +322,6 @@ export default function Index(props) {
                   borderWidth: 1.5,
                   borderColor: colors.appBorderColor1,
                   overflow: 'hidden',
-                  marginRight: scale(10),
                 }}>
                 {isTermsAccepted ? (
                   <Svg width={responsiveWidth(3.5)} height={responsiveWidth(3.5)} viewBox="0 0 24 24" fill="none">
@@ -293,26 +329,59 @@ export default function Index(props) {
                   </Svg>
                 ) : null}
               </Wrapper>
+            </TouchableOpacity>
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
               <Text 
                 isSmall 
                 isTextColor2 
                 fontSize={responsiveWidth(3.2)} 
                 style={{ 
-                  flex: 1,
                   lineHeight: responsiveWidth(4.5),
                   textAlign: 'left'
                 }}>
                 {t('BY_CREATING_ACCOUNT')}{' '}
-                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.2)}>
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  console.log('Terms link clicked');
+                  openTerms();
+                }}
+                activeOpacity={0.7}>
+                <Text 
+                  isPrimaryColor 
+                  isRegularFont 
+                  fontSize={responsiveWidth(3.2)}
+                  style={{ textDecorationLine: 'underline' }}>
                   {t('TERMS_AND_CONDITIONS')}
                 </Text>
+              </TouchableOpacity>
+              <Text 
+                isSmall 
+                isTextColor2 
+                fontSize={responsiveWidth(3.2)} 
+                style={{ 
+                  lineHeight: responsiveWidth(4.5),
+                  textAlign: 'left',
+                  marginHorizontal: 4
+                }}>
                 {' '}{t('AND')}{' '}
-                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.2)}>
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  console.log('Privacy link clicked');
+                  openPrivacy();
+                }}
+                activeOpacity={0.7}>
+                <Text 
+                  isPrimaryColor 
+                  isRegularFont 
+                  fontSize={responsiveWidth(3.2)}
+                  style={{ textDecorationLine: 'underline' }}>
                   {t('PRIVACY_POLICY')}
                 </Text>
-              </Text>
-            </Wrapper>
-          </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
+          </Wrapper>
         </Wrapper>
         
         <Spacer isSmall />
@@ -350,6 +419,14 @@ export default function Index(props) {
         </Wrapper>
         
       </Wrapper>
+      
+      {/* WebView Modal for Terms and Privacy */}
+      <WebViewModal
+        visible={webViewVisible}
+        url={webViewUrl}
+        title={webViewTitle}
+        onClose={() => setWebViewVisible(false)}
+      />
     </Wrapper>
   );
 }

@@ -1,5 +1,5 @@
 import {Pressable, StyleSheet, TextInput, View, Alert, FlatList, KeyboardAvoidingView, Platform, TouchableOpacity, Modal, Image} from 'react-native';
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {
   Headers,
   Icons,
@@ -36,7 +36,9 @@ import {
 import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import {getChat, markChatAsSeen, addMessageToChat, createChat, findChatBetweenUsers, getMessagesForChat, addMessage, updateChat, listenToMessages} from '../../../services/firebaseUtilities/chat';
-import {getUser} from '../../../services/firebaseUtilities/user';
+import {getUser, blockUser, unblockUser} from '../../../services/firebaseUtilities/user';
+import {useDispatch} from 'react-redux';
+import {setUser as setUserAction} from '../../../store/actions/auth';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import useImagePicker from '../../../services/helper/hooks/useImagePicker';
 import {uploadImage, uploadVideo} from '../../../services/firebaseUtilities/storage';
@@ -46,10 +48,12 @@ import CallMinutesShopModal from '../../../components/modals/CallMinutesShopModa
 const ChatScreen = ({route}) => {
   const {t} = useTranslation();
   const user = useSelector(state => state.auth.user);
+  const dispatch = useDispatch();
   const {chatId, otherUserId} = route.params || {};
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
   const {openLibrary, openVideoLibrary} = useImagePicker();
+  const [isBlocked, setIsBlocked] = useState(false);
   
   const [chat, setChat] = useState(null);
   const [otherUser, setOtherUser] = useState(null);
@@ -737,7 +741,81 @@ const ChatScreen = ({route}) => {
     }
   };
 
-  const chatOptions = ['Block', 'Mute', 'Unfriend'];
+  // Update blocked status when user or otherUser changes
+  useEffect(() => {
+    if (user && otherUser) {
+      setIsBlocked(user._blockList?.includes(otherUser.id) || false);
+    } else {
+      setIsBlocked(false);
+    }
+  }, [user?._blockList, otherUser?.id]);
+
+  const handleBlockUser = async () => {
+    if (!user || !otherUser) return;
+
+    try {
+      if (isBlocked) {
+        // Unblock
+        await unblockUser(user, otherUser);
+        
+        // Update local state
+        const updatedUser = {
+          ...user,
+          _blockList: (user._blockList || []).filter(id => id !== otherUser.id)
+        };
+        dispatch(setUserAction({user: updatedUser, dataLoaded: true}));
+        setIsBlocked(false);
+        
+        Alert.alert(t('SUCCESS'), t('NOTBLOCKPROFILE') || 'User unblocked');
+      } else {
+        // Block
+        Alert.alert(
+          t('BLOCKPROFILE') || 'Block User',
+          t('BLOCK_USER_CONFIRM') || 'Are you sure you want to block this user?',
+          [
+            {
+              text: t('CANCEL'),
+              style: 'cancel'
+            },
+            {
+              text: t('BLOCK'),
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await blockUser(user, otherUser);
+                  
+                  // Update local state
+                  const updatedUser = {
+                    ...user,
+                    _blockList: [...(user._blockList || []), otherUser.id]
+                  };
+                  dispatch(setUserAction({user: updatedUser, dataLoaded: true}));
+                  setIsBlocked(true);
+                  
+                  Alert.alert(t('SUCCESS'), t('BLOCKPROFILE') || 'User blocked');
+                  goBack(); // Go back after blocking
+                } catch (error) {
+                  console.error('Error blocking user:', error);
+                  Alert.alert(t('ERROR'), t('SOMETHING_WENT_WRONG'));
+                }
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error in block/unblock:', error);
+      Alert.alert(t('ERROR'), t('SOMETHING_WENT_WRONG'));
+    }
+  };
+
+  // Define chatOptions as a useMemo to ensure it updates when isBlocked changes
+  const chatOptions = useMemo(() => [
+    'Mute',
+    'Unfriend',
+    t('REPORTPROFILE'),
+    isBlocked ? t('NOTBLOCKPROFILE') : t('BLOCKPROFILE')
+  ], [isBlocked, t]);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -904,7 +982,13 @@ const ChatScreen = ({route}) => {
                 <MenuOption
                   key={index}
                   onSelect={() => {
-                    Alert.alert(t('INFO'), `${item} ${t('FEATURE_COMING_SOON')}`);
+                    if (item === t('BLOCKPROFILE') || item === t('NOTBLOCKPROFILE')) {
+                      handleBlockUser();
+                    } else if (item === t('REPORTPROFILE')) {
+                      navigate(routes.support, {reportProfile: true, reportedUserId: otherUserId});
+                    } else {
+                      Alert.alert(t('INFO'), `${item} ${t('FEATURE_COMING_SOON') || 'Coming soon'}`);
+                    }
                   }}
                   customStyles={{
                     optionWrapper: {
@@ -914,8 +998,11 @@ const ChatScreen = ({route}) => {
                   <Text
                     isSmall
                     isRegularFont
-                    isPrimaryColor={item === 'Unfriend'}>
-                    {t(item.toUpperCase())}
+                    isPrimaryColor={item === 'Unfriend' || item === t('REPORTPROFILE') || item === t('BLOCKPROFILE') || item === t('NOTBLOCKPROFILE')}>
+                    {item === t('REPORTPROFILE') ? t('REPORTPROFILE') : 
+                     item === t('BLOCKPROFILE') ? t('BLOCKPROFILE') :
+                     item === t('NOTBLOCKPROFILE') ? t('NOTBLOCKPROFILE') :
+                     t(item.toUpperCase())}
                   </Text>
                 </MenuOption>
               ))}

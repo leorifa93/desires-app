@@ -540,3 +540,100 @@ export const endFriendship = async (user1, user2) => {
     throw error;
   }
 };
+
+/**
+ * Block a user
+ * @param {Object} blocker - The user who is blocking
+ * @param {Object} blockedUser - The user being blocked
+ * @returns {Promise<void>}
+ */
+export const blockUser = async (blocker, blockedUser) => {
+  try {
+    const batch = firestore().batch();
+    
+    const blockerRef = firestore().collection('Users').doc(blocker.id);
+    const blockedUserRef = firestore().collection('Users').doc(blockedUser.id);
+    
+    // Initialize arrays if they don't exist
+    const blockerUpdate = {
+      _blockList: firestore.FieldValue.arrayUnion(blockedUser.id)
+    };
+    
+    const blockedUserUpdate = {
+      _gotBlockedFrom: firestore.FieldValue.arrayUnion(blocker.id)
+    };
+    
+    batch.update(blockerRef, blockerUpdate);
+    batch.update(blockedUserRef, blockedUserUpdate);
+    
+    await batch.commit();
+    console.log(`User ${blocker.username} blocked ${blockedUser.username}`);
+  } catch (error) {
+    console.error('Error blocking user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Unblock a user
+ * @param {Object} blocker - The user who is unblocking
+ * @param {Object} blockedUser - The user being unblocked
+ * @returns {Promise<void>}
+ */
+export const unblockUser = async (blocker, blockedUser) => {
+  try {
+    const batch = firestore().batch();
+    
+    const blockerRef = firestore().collection('Users').doc(blocker.id);
+    const blockedUserRef = firestore().collection('Users').doc(blockedUser.id);
+    
+    batch.update(blockerRef, {
+      _blockList: firestore.FieldValue.arrayRemove(blockedUser.id)
+    });
+    
+    batch.update(blockedUserRef, {
+      _gotBlockedFrom: firestore.FieldValue.arrayRemove(blocker.id)
+    });
+    
+    await batch.commit();
+    console.log(`User ${blocker.username} unblocked ${blockedUser.username}`);
+  } catch (error) {
+    console.error('Error unblocking user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get blocked users for a given user
+ * @param {string} userId - The user ID
+ * @returns {Promise<Array>} Array of blocked user objects
+ */
+export const getBlockedUsers = async (userId) => {
+  try {
+    if (!userId) {
+      console.warn('getBlockedUsers: No userId provided');
+      return [];
+    }
+    
+    const user = await getDocumentById({collection: 'Users', id: userId});
+    
+    if (!user) {
+      console.warn('getBlockedUsers: User not found:', userId);
+      return [];
+    }
+    
+    if (!user._blockList || !Array.isArray(user._blockList) || user._blockList.length === 0) {
+      return [];
+    }
+    
+    // Get all blocked users
+    const blockedUsers = await getUsersByIds(user._blockList);
+    
+    // Filter out any null/undefined users (in case some were deleted)
+    return blockedUsers.filter(u => u && u.id);
+  } catch (error) {
+    console.error('Error getting blocked users:', error);
+    // Return empty array instead of throwing to prevent crashes
+    return [];
+  }
+};

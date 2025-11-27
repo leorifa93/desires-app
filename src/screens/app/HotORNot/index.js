@@ -259,7 +259,9 @@ export default function Index() {
         (user?.genderLookingFor?.includes?.(u.gender) ?? true) &&
         (u.status === 'active' || u.status === 1) &&
         ![4, 5, 6].includes(u.membership) &&
-        (u.profilePictures?.original || u.profilePictures?.thumbnails?.big)
+        (u.profilePictures?.original || u.profilePictures?.thumbnails?.big) &&
+        !user?._gotBlockedFrom?.includes(getId(u)) &&
+        !user?._blockList?.includes(getId(u))
       );
 
       // Always append new users (simplified approach)

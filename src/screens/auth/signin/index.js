@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import {
   Text,
   TextInputs,
@@ -36,6 +36,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import WebViewModal from '../../../components/WebViewModal';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { version } from '../../../../package.json';
 
@@ -45,7 +47,38 @@ const loginSchema = z.object({
 })
 
 export default function Index({ handleCurrentPage }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const user = useSelector(state => state.auth.user);
+  const [webViewVisible, setWebViewVisible] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('');
+  const [webViewTitle, setWebViewTitle] = useState('');
+  
+  const openTerms = () => {
+    const lang = user?._settings?.currentLang || i18n.language || 'en';
+    const urls = {
+      de: 'https://desires.app/de/agb/',
+      en: 'https://desires.app/terms/',
+      es: 'https://desires.app/es/terminos/',
+      fr: 'https://desires.app/fr/conditions-generales/',
+    };
+    setWebViewTitle(t('TERMS_AND_CONDITIONS'));
+    setWebViewUrl(urls[lang] || urls.en);
+    setWebViewVisible(true);
+  };
+  
+  const openPrivacy = () => {
+    const lang = user?._settings?.currentLang || i18n.language || 'en';
+    const urls = {
+      de: 'https://desires.app/de/datenschutz/',
+      en: 'https://desires.app/privacy-policy/',
+      es: 'https://desires.app/es/politica-de-privacidad/',
+      fr: 'https://desires.app/fr/conditions-generales/',
+    };
+    setWebViewTitle(t('PRIVACY_POLICY'));
+    setWebViewUrl(urls[lang] || urls.en);
+    setWebViewVisible(true);
+  };
+  
   const {
     handleLogin,
     SecurePassword,
@@ -208,14 +241,14 @@ export default function Index({ handleCurrentPage }) {
           <Wrapper alignItemsCenter justifyContentCenter marginHorizontalBase>
             <Text isRegular isTextColor2 textAlignCenter fontSize={responsiveWidth(3.5)} style={{ textAlign: 'center' }}>
               {t('BY_SIGNING_IN')}{' '}
-              <TouchableOpacity onPress={() => {}}>
-                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)}>
+              <TouchableOpacity onPress={openTerms}>
+                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)} style={{ textDecorationLine: 'underline' }}>
                   {t('TERMS_AND_CONDITIONS')}
                 </Text>
               </TouchableOpacity>
               {' '}{t('AND')}{' '}
-              <TouchableOpacity onPress={() => {}}>
-                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)}>
+              <TouchableOpacity onPress={openPrivacy}>
+                <Text isPrimaryColor isRegularFont fontSize={responsiveWidth(3.5)} style={{ textDecorationLine: 'underline' }}>
                   {t('PRIVACY_POLICY')}
                 </Text>
               </TouchableOpacity>
@@ -303,6 +336,14 @@ export default function Index({ handleCurrentPage }) {
             </Wrapper>
           </Wrapper>
         }
+      />
+      
+      {/* WebView Modal for Terms and Privacy */}
+      <WebViewModal
+        visible={webViewVisible}
+        url={webViewUrl}
+        title={webViewTitle}
+        onClose={() => setWebViewVisible(false)}
       />
     </Wrapper>
   );

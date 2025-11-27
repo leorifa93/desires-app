@@ -14,6 +14,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "750696506520-1u4ugkn60so7uvvd523k42dcvrqthlsc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dating.desires",
+            "certificate_hash": "af8f23524a9f5acb1331f8372eb50350fc8e605c"
+          }
+        },
+        {
+          "client_id": "750696506520-6lv4gv562500ee1hvlfh2741ohrs4pvr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dating.desires",
+            "certificate_hash": "5e70dee103361a783dc60fffbe18bf8c7f4d70ad"
+          }
+        },
+        {
+          "client_id": "750696506520-ra0lar3a3u0ei7c7brarurj5t7ddnni3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dating.desires",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
           "client_id": "750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -45,3 +69,9 @@
   ],
   "configuration_version": "1"
 }
+
+
+
+
+
+

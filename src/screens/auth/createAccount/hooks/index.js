@@ -102,17 +102,30 @@ export function useHooks() {
   };
 
   const createOrSignInUserViaGoogle = async () => {
+    if (isCreatingUser) {
+      console.log('CreateAccount: Google Sign-In already in progress, ignoring duplicate tap');
+      return;
+    }
+
+    setIsCreatingUser(true);
+    
     try {
-      setIsCreatingUser(true);
-      
       // Initialize Google Sign-In
       GoogleSignin.configure({
-        webClientId: '750696506520-qo39og1l3lbgafhpt14tg8g55ppe7rl2.apps.googleusercontent.com', // Web Client ID
+        webClientId: '750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com', // Web Client ID
         iosClientId: '750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0.apps.googleusercontent.com', // iOS Client ID
         offlineAccess: true,
       });
+      console.log('CreateAccount: Google Sign-In configured with webClientId:', '750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com');
       
       await GoogleSignin.hasPlayServices();
+
+      try {
+        await GoogleSignin.signOut();
+      } catch (signOutError) {
+        console.log('CreateAccount: Google Sign-In cleanup failed (safe to ignore):', signOutError?.message);
+      }
+
       const userInfo = await GoogleSignin.signIn();
       console.log('Google Sign-In successful:', userInfo);
       

@@ -44,5 +44,10 @@
 	<array/>
 	<key>NSPrivacyTracking</key>
 	<true/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array>
+		<string>app-measurement.com</string>
+		<string>google-analytics.com</string>
+	</array>
 </dict>
 </plist>

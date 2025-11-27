@@ -134,7 +134,9 @@ export default function Index() {
           u.genderLookingFor?.includes(user.gender) &&
           u.status === STATUS_ACTIVE &&
           u.id !== user.id &&
-          !([Membership.Silver, Membership.Phantom, Membership.Celebrity].includes(u.membership))
+          !([Membership.Silver, Membership.Phantom, Membership.Celebrity].includes(u.membership)) &&
+          !user._gotBlockedFrom?.includes(u.id) &&
+          !user._blockList?.includes(u.id)
         );
       });
 

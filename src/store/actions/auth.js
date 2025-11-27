@@ -50,12 +50,22 @@ export const signOut = (isSessionExpired = false) => async (dispatch, getState) 
             userDataUnsubscribe = null;
         }
         
+        const currentUser = getState().auth.user;
+
+        // Unsubscribe admin topic if necessary before clearing auth state
+        if (currentUser?.isAdmin) {
+            try {
+                await fcmService.unsubscribeFromTopic('admin');
+            } catch (error) {
+                console.error('Auth: Error unsubscribing from admin topic:', error);
+            }
+        }
+
         // Sign out from Firebase
         await auth().signOut();
         
         // Remove FCM token from user document
         try {
-            const currentUser = getState().auth.user;
             if (currentUser?.id) {
                 await fcmService.removeTokenFromUser(currentUser.id);
             }
@@ -368,6 +378,13 @@ export const monitorAuthState = () => (dispatch, getState) => {
                                 })
                                 .then(() => {
                                     console.log('Auth: FCM registration completed');
+                                    if (serializedCleanUser?.isAdmin) {
+                                        console.log('Auth: User is admin - subscribing to admin topic');
+                                        fcmService.subscribeToTopic('admin');
+                                    } else {
+                                        console.log('Auth: User is not admin - ensuring admin topic is unsubscribed');
+                                        fcmService.unsubscribeFromTopic('admin');
+                                    }
                                 })
                                 .catch(error => {
                                     console.error('Auth: FCM initialization failed:', error);

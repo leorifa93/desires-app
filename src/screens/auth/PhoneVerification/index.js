@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import {
   Buttons,
@@ -44,6 +45,31 @@ export default function PhoneVerification({route, navigation}) {
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const hiddenInputRef = React.useRef(null);
   const [formattedPhoneForVerification, setFormattedPhoneForVerification] = useState('');
+
+  const [screenDimensions, setScreenDimensions] = useState(() => Dimensions.get('window'));
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener?.('change', ({window}) => {
+      setScreenDimensions(window);
+    });
+    return () => {
+      if (subscription?.remove) {
+        subscription.remove();
+      } else if (typeof subscription === 'function') {
+        subscription();
+      }
+    };
+  }, []);
+
+  const isTablet =
+    (Platform.OS === 'ios' && Platform.isPad) ||
+    screenDimensions.width >= 768 ||
+    screenDimensions.height >= 768;
+
+  const styles = React.useMemo(
+    () => createStyles(isTablet, screenDimensions.width),
+    [isTablet, screenDimensions.width],
+  );
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
@@ -279,7 +305,7 @@ export default function PhoneVerification({route, navigation}) {
                   <Wrapper alignItemsCenter>
                     <ActivityIndicator size="small" color={colors.appPrimaryColor} />
                     <Spacer height={4} />
-                    <Text isRegular isTextColor2 textAlignCenter>
+                    <Text isRegular isTextColor2 textAlignCenter style={styles.statusText}>
                       {t('SENDING_CODE')}
                     </Text>
                   </Wrapper>
@@ -295,7 +321,7 @@ export default function PhoneVerification({route, navigation}) {
             <Spacer isBase />
             <Wrapper alignItemsCenter paddingHorizontalBase>
               <Wrapper style={styles.card}>
-                <Text isMedium textAlignCenter marginBottomMedium>
+                <Text isMedium textAlignCenter marginBottomMedium style={styles.pleaseEnterCodeText}>
                   {t('PLEASE_ENTER_CODE')}
                 </Text>
 
@@ -364,7 +390,7 @@ export default function PhoneVerification({route, navigation}) {
                     <Wrapper alignItemsCenter>
                       <ActivityIndicator size="small" color={colors.appPrimaryColor} />
                       <Spacer height={4} />
-                      <Text isRegular isTextColor2 textAlignCenter>
+                      <Text isRegular isTextColor2 textAlignCenter style={styles.statusText}>
                         {t('VERIFYING_CODE')}
                       </Text>
                     </Wrapper>
@@ -395,88 +421,100 @@ export default function PhoneVerification({route, navigation}) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 520,
-    backgroundColor: colors.appBgColor2,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  titleText: {
-    fontSize: responsiveWidth(5),
-  },
-  descriptionText: {
-    fontSize: responsiveWidth(3.6),
-    lineHeight: 22,
-  },
-  countryCodeContainer: {
-    paddingHorizontal: 10,
-    borderRightWidth: 1,
-    borderRightColor: colors.appBorderColor1,
-  },
-  hiddenInput: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    opacity: 0,
-    zIndex: 10,
-  },
-  otpBoxContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 8,
-    paddingVertical: 20,
-    zIndex: 1,
-  },
-  otpBox: {
-    width: responsiveWidth(12),
-    height: responsiveWidth(15),
-    borderWidth: 2,
-    borderColor: colors.appBorderColor2,
-    borderRadius: 12,
-    backgroundColor: colors.appBgColor1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  otpDigitText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.appTextColor1,
-    textAlign: 'center',
-  },
-  resendText: {
-    textDecorationLine: 'underline',
-  },
-  primaryButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-  },
-  primaryButtonText: {
-    fontSize: responsiveWidth(3.8),
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  phoneContainer: {
-    width: '100%',
-    borderRadius: 12,
-    backgroundColor: colors.appBgColor1,
-    borderWidth: 1,
-    borderColor: colors.appBorderColor1,
-  },
-  phoneTextContainer: {
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    backgroundColor: colors.appBgColor1,
-  },
-});
+const createStyles = (isTabletDevice, screenWidth) => {
+  const tabletBoxWidth = Math.min(screenWidth * 0.08, 80);
+  const tabletBoxHeight = Math.min(screenWidth * 0.1, 90);
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    card: {
+      width: '100%',
+      maxWidth: 520,
+      backgroundColor: colors.appBgColor2,
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    titleText: {
+      fontSize: isTabletDevice ? responsiveWidth(3) : responsiveWidth(5),
+    },
+    descriptionText: {
+      fontSize: isTabletDevice ? responsiveWidth(2) : responsiveWidth(3.6),
+      lineHeight: isTabletDevice ? 28 : 22,
+    },
+    countryCodeContainer: {
+      paddingHorizontal: 10,
+      borderRightWidth: 1,
+      borderRightColor: colors.appBorderColor1,
+    },
+    hiddenInput: {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      opacity: 0,
+      zIndex: 10,
+    },
+    otpBoxContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+      paddingHorizontal: isTabletDevice ? 4 : 8,
+      paddingVertical: isTabletDevice ? 16 : 20,
+      zIndex: 1,
+    },
+    otpBox: {
+      width: isTabletDevice ? tabletBoxWidth : responsiveWidth(12),
+      height: isTabletDevice ? tabletBoxHeight : responsiveWidth(15),
+      borderWidth: 2,
+      borderColor: colors.appBorderColor2,
+      borderRadius: isTabletDevice ? 10 : 12,
+      backgroundColor: colors.appBgColor1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    otpDigitText: {
+      fontSize: isTabletDevice ? 30 : 24,
+      fontWeight: '700',
+      color: colors.appTextColor1,
+      textAlign: 'center',
+    },
+    pleaseEnterCodeText: {
+      fontSize: isTabletDevice ? responsiveWidth(3) : undefined,
+    },
+    statusText: {
+      fontSize: isTabletDevice ? responsiveWidth(2) : undefined,
+    },
+    resendText: {
+      textDecorationLine: 'underline',
+      fontSize: isTabletDevice ? responsiveWidth(2) : undefined,
+    },
+    primaryButton: {
+      borderRadius: 12,
+      paddingVertical: 14,
+    },
+    primaryButtonText: {
+      fontSize: isTabletDevice ? responsiveWidth(2) : responsiveWidth(3.8),
+    },
+    disabledButton: {
+      opacity: 0.6,
+    },
+    phoneContainer: {
+      width: '100%',
+      borderRadius: 12,
+      backgroundColor: colors.appBgColor1,
+      borderWidth: 1,
+      borderColor: colors.appBorderColor1,
+    },
+    phoneTextContainer: {
+      borderTopRightRadius: 12,
+      borderBottomRightRadius: 12,
+      backgroundColor: colors.appBgColor1,
+    },
+  });
+};

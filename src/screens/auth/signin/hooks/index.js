@@ -22,10 +22,11 @@ export function useHooks() {
   // Initialize Google Sign-In
   const initializeGoogleSignIn = () => {
     GoogleSignin.configure({
-      webClientId: '750696506520-qo39og1l3lbgafhpt14tg8g55ppe7rl2.apps.googleusercontent.com', // Web Client ID
+      webClientId: '750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com', // Web Client ID
       iosClientId: '750696506520-e4vn1idu81b2cl2fsfj47ulhlcnn6ft0.apps.googleusercontent.com', // iOS Client ID
       offlineAccess: true,
     });
+    console.log('Google Sign-In configured with webClientId:', '750696506520-uoj9srloh4um5s47tk7s5qa4hfgkn5b6.apps.googleusercontent.com');
   };
 
   const handleLogin = (email, password) => {
@@ -44,14 +45,27 @@ export function useHooks() {
   };
 
   const createOrSignInUserViaGoogle = async () => {
+    if (isLoggingIn) {
+      console.log('Google Sign-In already in progress, ignoring duplicate tap');
+      return;
+    }
+
+    setIsLoggingIn(true);
+
     try {
-      setIsLoggingIn(true);
-      
       // Initialize Google Sign-In if not already done
       initializeGoogleSignIn();
       
       // Check if your device supports Google Play
       await GoogleSignin.hasPlayServices();
+
+      // Make sure we're not in a stale sign-in state from a previous attempt
+      try {
+        await GoogleSignin.signOut();
+      } catch (signOutError) {
+        // ignore - user might not have been signed in
+        console.log('Google Sign-In: previous session cleanup failed (safe to ignore):', signOutError?.message);
+      }
       
       // Get the users ID token
       const userInfo = await GoogleSignin.signIn();
@@ -83,12 +97,9 @@ export function useHooks() {
       } else {
         console.log('User already exists in Firestore');
       }
-      
-      setIsLoggingIn(false);
       // Navigation is handled by central navigation logic
       
     } catch (error) {
-      setIsLoggingIn(false);
       console.error('Google Sign-In error:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
@@ -98,6 +109,8 @@ export function useHooks() {
       } else {
         Alert.alert(t('ERROR'), error.message || t('ERROR_GOOGLE_SIGNIN'));
       }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 

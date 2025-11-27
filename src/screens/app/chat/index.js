@@ -286,8 +286,21 @@ export default function Index() {
       const unsubscribe = listenToChats(user.id, (chatsData) => {
         console.log('Real-time chats update received:', chatsData.length, 'chats');
         
+        // Filter out chats with blocked users
+        const filteredChats = chatsData.filter(chat => {
+          if (!chat.memberIds || !Array.isArray(chat.memberIds)) return false;
+          
+          // Get the other user's ID
+          const otherUserId = chat.memberIds.find(id => id !== user.id);
+          if (!otherUserId) return false;
+          
+          // Filter out if user blocked them or was blocked by them
+          return !user._blockList?.includes(otherUserId) && 
+                 !user._gotBlockedFrom?.includes(otherUserId);
+        });
+        
         // Sort chats by lastMessageAt (newest first)
-        const sortedChats = chatsData.sort((a, b) => {
+        const sortedChats = filteredChats.sort((a, b) => {
           return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
         });
         
@@ -307,8 +320,21 @@ export default function Index() {
       setLoading(true);
       const chatsData = await getAllChats(user.id);
       
+      // Filter out chats with blocked users
+      const filteredChats = chatsData.filter(chat => {
+        if (!chat.memberIds || !Array.isArray(chat.memberIds)) return false;
+        
+        // Get the other user's ID
+        const otherUserId = chat.memberIds.find(id => id !== user.id);
+        if (!otherUserId) return false;
+        
+        // Filter out if user blocked them or was blocked by them
+        return !user._blockList?.includes(otherUserId) && 
+               !user._gotBlockedFrom?.includes(otherUserId);
+      });
+      
       // Sort chats by lastMessageAt (newest first)
-      const sortedChats = chatsData.sort((a, b) => {
+      const sortedChats = filteredChats.sort((a, b) => {
         return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
       });
       

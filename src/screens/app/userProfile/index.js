@@ -63,6 +63,10 @@ import {useSelector} from 'react-redux';
 import {getDocumentById} from '../../../services/firebaseUtilities';
 import {useTranslation} from 'react-i18next';
 import firestore from '@react-native-firebase/firestore';
+import {Linking} from 'react-native';
+import {blockUser, unblockUser} from '../../../services/firebaseUtilities/user';
+import {useDispatch} from 'react-redux';
+import {setUser as setUserAction} from '../../../store/actions/auth';
 
 const Index = ({route}) => {
   const visiterProfile = route?.params?.visiterProfile
@@ -78,6 +82,8 @@ const Index = ({route}) => {
   const [currentPrivateImageIndex, setCurrentPrivateImageIndex] = useState(0);
   const {t} = useTranslation();
   const scrollViewRef = useRef(null);
+  const dispatch = useDispatch();
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // Prefer original image if available
   const getPreferredImageUri = pic => {
@@ -189,6 +195,11 @@ const Index = ({route}) => {
       
       setUser(u);
       updateDistance(u);
+      
+      // Check if user is blocked
+      if (me && u) {
+        setIsBlocked(me._blockList?.includes(u.id) || false);
+      }
     } catch (err) {
       console.log('Error loading user:', err.message);
       Alert.alert(
@@ -265,6 +276,13 @@ const Index = ({route}) => {
     user?.currentLocation?.lat,
     user?.currentLocation?.lng,
   ]);
+
+  // Update blocked status when me or user changes
+  useEffect(() => {
+    if (me && user && visiterProfile) {
+      setIsBlocked(me._blockList?.includes(user.id) || false);
+    }
+  }, [me?._blockList, user?.id, visiterProfile]);
 
   // Scroll to current image when modal opens
   useEffect(() => {
@@ -386,6 +404,78 @@ const Index = ({route}) => {
       Alert.alert(t('SUCCESS'), t('REQUEST_REVOKED') || 'Request revoked');
     } catch (error) {
       console.error('Error revoking private gallery request:', error);
+      Alert.alert(t('ERROR'), t('SOMETHING_WENT_WRONG'));
+    }
+  };
+
+  // Handle block/unblock user
+  const handleBlockUser = async () => {
+    if (!me || !user || !visiterProfile) return;
+
+    try {
+      if (isBlocked) {
+        // Unblock
+        await unblockUser(me, user);
+        
+        // Update local state
+        const updatedMe = {
+          ...me,
+          _blockList: (me._blockList || []).filter(id => id !== user.id)
+        };
+        dispatch(setUserAction({user: updatedMe, dataLoaded: true}));
+        
+        const updatedUser = {
+          ...user,
+          _gotBlockedFrom: (user._gotBlockedFrom || []).filter(id => id !== me.id)
+        };
+        setUser(updatedUser); // Update local user state (not Redux)
+        setIsBlocked(false);
+        
+        Alert.alert(t('SUCCESS'), t('NOTBLOCKPROFILE') || 'User unblocked');
+      } else {
+        // Block
+        Alert.alert(
+          t('BLOCKPROFILE') || 'Block User',
+          t('BLOCK_USER_CONFIRM') || 'Are you sure you want to block this user?',
+          [
+            {
+              text: t('CANCEL'),
+              style: 'cancel'
+            },
+            {
+              text: t('BLOCK'),
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await blockUser(me, user);
+                  
+                  // Update local state
+                  const updatedMe = {
+                    ...me,
+                    _blockList: [...(me._blockList || []), user.id]
+                  };
+                  dispatch(setUserAction({user: updatedMe, dataLoaded: true}));
+                  
+                  const updatedUser = {
+                    ...user,
+                    _gotBlockedFrom: [...(user._gotBlockedFrom || []), me.id]
+                  };
+                  setUser(updatedUser);
+                  setIsBlocked(true);
+                  
+                  Alert.alert(t('SUCCESS'), t('BLOCKPROFILE') || 'User blocked');
+                  goBack(); // Go back after blocking
+                } catch (error) {
+                  console.error('Error blocking user:', error);
+                  Alert.alert(t('ERROR'), t('SOMETHING_WENT_WRONG'));
+                }
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error in block/unblock:', error);
       Alert.alert(t('ERROR'), t('SOMETHING_WENT_WRONG'));
     }
   };
@@ -1004,6 +1094,71 @@ const Index = ({route}) => {
                   />
                   <Spacer isDoubleBase />
                 </Fragment>
+              )}
+
+              {/* Report Profile - only show for visitor profile - positioned at the bottom */}
+              {visiterProfile && (
+                <>
+                  <Wrapper
+                    marginHorizontalBase
+                    marginVerticalBase
+                    flexDirectionRow
+                    alignItemsCenter
+                    justifyContentSpaceBetween>
+                    <View style={{width: responsiveWidth(70)}}>
+                      <Text isLarge isBoldFont>
+                        {t('REPORTPROFILE')}
+                      </Text>
+                      <Spacer isSmall />
+                      <Text isRegular isRegularFont isTextColor2>
+                        {t('REPORTREASON')}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={{
+                        borderRadius: responsiveWidth(100),
+                        borderWidth: 1,
+                        borderColor: colors.appBorderColor2,
+                        padding: responsiveWidth(2),
+                        backgroundColor: colors.appBgColor1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: scale(48),
+                        height: scale(48),
+                      }}
+                      onPress={() => {
+                        navigate(routes.support, {reportProfile: true, reportedUserId: user?.id});
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: scale(20),
+                          color: colors.appPrimaryColor,
+                          fontWeight: 'bold',
+                        }}>
+                        ⚠️
+                      </Text>
+                    </TouchableOpacity>
+                  </Wrapper>
+
+                  {/* Block User - simple link under Report Profile */}
+                  {!me?._gotBlockedFrom?.includes(user?.id) && (
+                    <Wrapper
+                      marginHorizontalBase
+                      marginBottomBase>
+                      <TouchableOpacity onPress={handleBlockUser}>
+                        <Text
+                          isRegular
+                          isRegularFont
+                          isPrimaryColor
+                          style={{
+                            textDecorationLine: 'underline',
+                          }}>
+                          {isBlocked ? t('NOTBLOCKPROFILE') : t('BLOCKPROFILE')}
+                        </Text>
+                      </TouchableOpacity>
+                    </Wrapper>
+                  )}
+                </>
               )}
             </Wrapper>
           <Modals.EditProfile

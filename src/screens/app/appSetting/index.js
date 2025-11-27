@@ -1,5 +1,5 @@
-import {View, TouchableOpacity, StyleSheet, Dimensions, ScrollView} from 'react-native';
-import React from 'react';
+import {View, TouchableOpacity, Dimensions, ScrollView} from 'react-native';
+import React, {useState} from 'react';
 import {
   Buttons,
   Headers,
@@ -27,6 +27,7 @@ import {
 } from '../../../services';
 import {useHooks} from './hooks';
 import {useTranslation} from 'react-i18next';
+import WebViewModal from '../../../components/WebViewModal';
 import {useSelector} from 'react-redux';
 import {scale, verticalScale} from 'react-native-size-matters';
 import {Options} from './hooks';
@@ -64,7 +65,10 @@ const Index = () => {
     updateLanguage,
     handleIconReset,
   } = useHooks();
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const [webViewVisible, setWebViewVisible] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('');
+  const [webViewTitle, setWebViewTitle] = useState('');
 
   // Get current language display name
   const getCurrentLanguageName = () => {
@@ -271,14 +275,36 @@ const Index = () => {
             iconSizeRight={24}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
-            onPress={handleTogglePrivacyPolicyModal}
+            onPress={() => {
+              const lang = user?._settings?.currentLang || i18n.language || 'en';
+              const urls = {
+                de: 'https://desires.app/de/datenschutz/',
+                en: 'https://desires.app/privacy-policy/',
+                es: 'https://desires.app/es/politica-de-privacidad/',
+                fr: 'https://desires.app/fr/conditions-generales/',
+              };
+              setWebViewTitle(t('PRIVACY_POLICY'));
+              setWebViewUrl(urls[lang] || urls.en);
+              setWebViewVisible(true);
+            }}
           />
           <TextInputs.Bordered
             placeholder={t('TERMSOFSERVICE')}
             iconSizeRight={24}
             placeholderTextColor={colors.appTextColor2}
             customIconRight={appIcons.Down}
-            onPress={handleToggleTermsConditionsModal}
+            onPress={() => {
+              const lang = user?._settings?.currentLang || i18n.language || 'en';
+              const urls = {
+                de: 'https://desires.app/de/agb/',
+                en: 'https://desires.app/terms/',
+                es: 'https://desires.app/es/terminos/',
+                fr: 'https://desires.app/fr/conditions-generales/',
+              };
+              setWebViewTitle(t('TERMSOFSERVICE'));
+              setWebViewUrl(urls[lang] || urls.en);
+              setWebViewVisible(true);
+            }}
           />
           <TextInputs.Bordered
             placeholder={t('ACCESS')}
@@ -377,6 +403,14 @@ const Index = () => {
           </ScrollViews.KeyboardAvoiding>
         </Wrapper>
       </Modals.PopupPrimary>
+      {/* WebView Modal for Terms and Privacy */}
+      <WebViewModal
+        visible={webViewVisible}
+        url={webViewUrl}
+        title={webViewTitle}
+        onClose={() => setWebViewVisible(false)}
+      />
+      
       {/* Vip Mode */}
       <Modals.PopupPrimary
         isBlur
@@ -401,7 +435,7 @@ const Index = () => {
           <Spacer isSmall />
           <Wrapper
             style={{
-              paddingBottom: responsiveHeight(10),
+              paddingBottom: responsiveHeight(4),
             }}>
             {IconVipData.map((item, index) => (
               <Options
@@ -417,13 +451,10 @@ const Index = () => {
                 onPressRight={item?.onPressRight}
               />
             ))}
+            <Spacer isBasic />
+            <Buttons.Colored text={t('RESET')} onPress={handleIconReset} />
           </Wrapper>
         </ScrollView>
-        
-        {/* Fixed Button at Bottom */}
-        <Wrapper style={styles.buttonONtheBottom}>
-          <Buttons.Colored text={t('RESET')} onPress={handleIconReset} />
-        </Wrapper>
       </Modals.PopupPrimary>
       {/* Stealth Mode */}
       <Modals.PopupPrimary
@@ -472,17 +503,5 @@ const Index = () => {
     </Wrapper>
   );
 };
-
-const styles = StyleSheet.create({
-  buttonONtheBottom: {
-    flex: 1,
-    position: 'absolute',
-    bottom: responsiveHeight(12),
-    left: 0,
-    right: 0,
-    paddingVertical: sizes.smallMargin,
-    marginVertical: sizes.smallMargin,
-  },
-});
 
 export default Index;

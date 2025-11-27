@@ -14,6 +14,8 @@ import {
   fontSizes,
   responsiveHeight,
   responsiveWidth,
+  calcDistance,
+  getApprovedImageSource,
 } from '../../../../services';
 import {scale} from 'react-native-size-matters';
 import {
@@ -25,11 +27,66 @@ import {
   Wrapper,
 } from '../../../../components';
 import {useMemo, useState} from 'react';
+import {useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import {navigate} from '../../../../navigation/rootNavigation';
+import {routes} from '../../../../services';
 
 export function useHooks() {
-  const FriendRenderDetail = ({ShowOnline, Detail}) => {
+  const me = useSelector(state => state.auth.user);
+  const {t} = useTranslation();
+  
+  const FriendRenderDetail = ({Detail, onUnblock}) => {
     const Height = Dimensions.get('screen').height;
     const [ShowOption, setShowOption] = useState(false);
+    
+    // Calculate distance
+    const distance = useMemo(() => {
+      if (!me?.currentLocation || !Detail?.currentLocation) return '0 km';
+      
+      const dis = Number(
+        calcDistance(
+          me.currentLocation.lat,
+          me.currentLocation.lng,
+          Detail.currentLocation.lat,
+          Detail.currentLocation.lng,
+          5,
+        ),
+      );
+      const distanceType = me?._settings?.units?.distanceType === 'Mi' ? 'Mi' : 'Km';
+      const distanceValue = distanceType === 'Mi' ? dis * 0.621371 : dis;
+      return distanceValue > 99
+        ? `>99${distanceType}`
+        : (distanceValue > 0 ? distanceValue.toFixed(1) : distanceValue) + distanceType;
+    }, [me?.currentLocation, Detail?.currentLocation, me?._settings?.units?.distanceType]);
+    
+    // Get user image
+    const imageSource = useMemo(() => {
+      if (!Detail) return appImages.image4;
+      const source = getApprovedImageSource(Detail.profilePictures, Detail.gender, me?.id, Detail?.id);
+      return source ? {uri: source} : appImages.image4;
+    }, [Detail?.profilePictures, Detail?.gender, me?.id, Detail?.id]);
+    
+    // Get location string
+    const locationString = useMemo(() => {
+      if (Detail?.currentLocation?.city && Detail?.currentLocation?.country) {
+        return `${Detail.currentLocation.city}, ${Detail.currentLocation.country}`;
+      }
+      // Handle location as object or string
+      if (Detail?.location) {
+        if (typeof Detail.location === 'string') {
+          return Detail.location;
+        }
+        if (typeof Detail.location === 'object' && Detail.location.location) {
+          return Detail.location.location;
+        }
+        if (typeof Detail.location === 'object' && Detail.location.city) {
+          return `${Detail.location.city}${Detail.location.country ? ', ' + Detail.location.country : ''}`;
+        }
+      }
+      return 'Unknown';
+    }, [Detail?.currentLocation, Detail?.location]);
+    
     const styles = StyleSheet.create({
       BadgeMainContainer: {
         height: scale(8),
@@ -38,15 +95,10 @@ export function useHooks() {
         left: scale(39),
         backgroundColor: colors.appBgColor1,
         borderRadius: responsiveWidth(100),
-        //padding: scale(1.5),
-        //justifyContent: 'center',
-        //alignItems: 'center',
       },
       BadgeInnerContainer: {
         flex: 1,
         margin: scale(1.1),
-        // alignSelf: 'center',
-        //left: scale(0.06),
         backgroundColor: '#13C634',
         borderRadius: responsiveWidth(100),
       },
@@ -62,18 +114,23 @@ export function useHooks() {
         zIndex: 2,
       },
     });
+    
     return (
       <View style={{flex: 1}}>
         <Wrapper
           flexDirectionRow
           marginHorizontalBase
-          //backgroundColor={'blue'}
           alignItemsCenter>
           {/* Image */}
           <Wrapper>
-            <Images.Round source={appImages.image4} size={scale(48)} />
-            {/* Bage */}
-            {Detail?.ShowOnline ? (
+            <Pressable
+              onPress={() => {
+                navigate(routes.userProfile, {visiterProfile: true, userId: Detail?.id});
+              }}>
+              <Images.Round source={imageSource} size={scale(48)} />
+            </Pressable>
+            {/* Badge */}
+            {Detail?.isOnline ? (
               <Wrapper isAbsolute style={styles.BadgeMainContainer}>
                 <Wrapper style={styles.BadgeInnerContainer} />
               </Wrapper>
@@ -82,24 +139,24 @@ export function useHooks() {
           {/* Text Name And Id */}
           <Wrapper
             marginHorizontalSmall
-            //backgroundColor={'red'}
             style={{width: responsiveWidth(56)}}>
             <Text isRegular isBoldFont>
-              {Detail?.name}, {Detail?.age}
+              {Detail?.username || 'Unknown'}, {Detail?.age || 'N/A'}
             </Text>
             <Text isSmall isRegularFont isTextColor2>
-              {Detail?.location} - {Detail?.distance}km
+              {locationString} - {distance}
             </Text>
           </Wrapper>
-          {/* Icons of Chat and the options */}
+          {/* Unblock Button */}
           <Wrapper
             flex={1}
             alignItemsFlexEnd
-            //backgroundColor={'green'}
             style={{height: responsiveHeight(4)}}>
-            <Text isPrimaryColor isSmall isMediumFont>
-              Unblock
-            </Text>
+            <TouchableOpacity onPress={onUnblock}>
+              <Text isPrimaryColor isSmall isMediumFont>
+                {t('NOTBLOCKPROFILE') || 'Unblock'}
+              </Text>
+            </TouchableOpacity>
           </Wrapper>
         </Wrapper>
         <Spacer isSmall />
@@ -115,81 +172,5 @@ export function useHooks() {
     );
   };
 
-  const data = useMemo(() => [
-    {
-      name: 'Jaydon Lubin',
-      age: 48,
-      location: 'Miami, FL',
-      distance: 12,
-      ShowOnline: true,
-    },
-    {
-      name: 'Ann Stanton',
-      age: 29,
-      location: 'Miami Beach, FL',
-      distance: 8,
-      ShowOnline: true,
-    },
-    {name: 'Mira Lubin', age: 24, location: 'Chicago, USA', distance: 2},
-    {name: 'Anika Kenter', age: 28, location: '5 Depot Drive, FL', distance: 7},
-    {
-      name: 'Kierra Rhiel Madsen',
-      age: 49,
-      location: '7278 Grandrose, FL',
-      distance: 4,
-      ShowOnline: true,
-    },
-    {
-      name: 'Kianna Stanton',
-      age: 27,
-      location: '831 St Louis, FL',
-      distance: 9,
-    },
-    {name: 'Mira Lubin', age: 24, location: 'Chicago, USA', distance: 2},
-    {name: 'Anika Kenter', age: 28, location: '5 Depot Drive, FL', distance: 7},
-    {
-      name: 'Kierra Rhiel Madsen',
-      age: 49,
-      location: '7278 Grandrose, FL',
-      distance: 4,
-      ShowOnline: true,
-    },
-    {
-      name: 'Kianna Stanton',
-      age: 27,
-      location: '831 St Louis, FL',
-      distance: 9,
-    },
-    {name: 'Mira Lubin', age: 24, location: 'Chicago, USA', distance: 2},
-    {name: 'Anika Kenter', age: 28, location: '5 Depot Drive, FL', distance: 7},
-    {
-      name: 'Kierra Rhiel Madsen',
-      age: 49,
-      location: '7278 Grandrose, FL',
-      distance: 4,
-      ShowOnline: true,
-    },
-    {
-      name: 'Kianna Stanton',
-      age: 27,
-      location: '831 St Louis, FL',
-      distance: 9,
-    },
-    {name: 'Mira Lubin', age: 24, location: 'Chicago, USA', distance: 2},
-    {name: 'Anika Kenter', age: 28, location: '5 Depot Drive, FL', distance: 7},
-    {
-      name: 'Kierra Rhiel Madsen',
-      age: 49,
-      location: '7278 Grandrose, FL',
-      distance: 4,
-      ShowOnline: true,
-    },
-    {
-      name: 'Kianna Stanton',
-      age: 27,
-      location: '831 St Louis, FL',
-      distance: 9,
-    },
-  ]);
-  return {FriendRenderDetail, data};
+  return {FriendRenderDetail};
 }

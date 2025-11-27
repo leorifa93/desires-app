@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Buttons,
   DropDowns,
@@ -15,21 +15,53 @@ import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import {goBack} from '../../../navigation/rootNavigation';
 import {Alert} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 
-export default function Index() {
+export default function Index({route}) {
   const {t} = useTranslation();
   const user = useSelector(state => state.auth.user);
+  const reportProfile = route?.params?.reportProfile || false;
+  const reportedUserId = route?.params?.reportedUserId || null;
   
-  const [reference, setReference] = useState('');
+  // Initialize reference based on route params
+  const getInitialReference = () => {
+    if (route?.params?.reportProfile) {
+      return 'REPORTPROFILE';
+    }
+    return '';
+  };
+  
+  const [reference, setReference] = useState(getInitialReference());
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [isSent, setIsSent] = useState(false);
   const [sending, setSending] = useState(false);
   
-  const selections = ['DELETEPROFILE', 'TECHNICALPROBLEM', 'MAINREQUEST'];
+  const selections = ['DELETEPROFILE', 'TECHNICALPROBLEM', 'MAINREQUEST', 'REPORTPROFILE'];
+
+  // Update reference when screen is focused and reportProfile param is present
+  useFocusEffect(
+    useCallback(() => {
+      if (route?.params?.reportProfile) {
+        console.log('Support: Setting reference to REPORTPROFILE (useFocusEffect)');
+        setReference('REPORTPROFILE');
+      } else if (!route?.params?.reportProfile && reference === 'REPORTPROFILE') {
+        // Reset if navigating back without reportProfile param
+        setReference('');
+      }
+    }, [route?.params?.reportProfile, reference])
+  );
+
+  // Also update when route params change (backup)
+  useEffect(() => {
+    if (route?.params?.reportProfile) {
+      console.log('Support: Setting reference to REPORTPROFILE (useEffect)');
+      setReference('REPORTPROFILE');
+    }
+  }, [route?.params?.reportProfile]);
 
   const sendReport = async () => {
-    if (!reference || (!user && !email) || (reference !== 'DELETEPROFILE' && !message)) {
+    if (!reference || (!user && !email) || (reference !== 'DELETEPROFILE' && reference !== 'REPORTPROFILE' && !message)) {
       Alert.alert(t('ERROR'), t('PLEASE_FILL_ALL_FIELDS'));
       return;
     }
@@ -38,11 +70,20 @@ export default function Index() {
       setSending(true);
       
       const userEmail = user?.email || email;
-      const profileLink = user ? `https://app.desires.app/profile/${user.id}` : '';
+      const profileLink = reportedUserId 
+        ? `https://app.desires.app/profile/${reportedUserId}` 
+        : (user ? `https://app.desires.app/profile/${user.id}` : '');
       
-      const reportMessage = reference === 'DELETEPROFILE' 
-        ? t('DELETEPROFILESUPPORTMESSAGE')
-        : `${message}\n\n${profileLink ? `Link zum Profil: ${profileLink}` : ''}`;
+      let reportMessage = '';
+      if (reference === 'DELETEPROFILE') {
+        reportMessage = t('DELETEPROFILESUPPORTMESSAGE');
+      } else if (reference === 'REPORTPROFILE') {
+        reportMessage = reportedUserId 
+          ? `${t('REPORTREASON')}\n\n${message || t('REPORTREASON')}\n\nLink zum gemeldeten Profil: ${profileLink}`
+          : `${t('REPORTREASON')}\n\n${message || t('REPORTREASON')}\n\n${profileLink ? `Link zum Profil: ${profileLink}` : ''}`;
+      } else {
+        reportMessage = `${message}\n\n${profileLink ? `Link zum Profil: ${profileLink}` : ''}`;
+      }
 
       const response = await fetch('https://sendreportmail-ytbcdg7bga-uc.a.run.app', {
         method: 'POST',
@@ -160,13 +201,13 @@ export default function Index() {
       {/* Delete profile info */}
       {renderDeleteProfileInfo()}
       
-      {/* Message field - only show if not delete profile */}
+      {/* Message field - show for report profile and other references except delete profile */}
       {reference && reference !== 'DELETEPROFILE' && (
         <>
           <TextInputs.Bordered
-            InputLabel={t('MESSAGE')}
+            InputLabel={reference === 'REPORTPROFILE' ? t('REPORTREASON') : t('MESSAGE')}
             multiline
-            placeholder={t('TYPEAMESSAGE')}
+            placeholder={reference === 'REPORTPROFILE' ? t('REPORTREASON') : t('TYPEAMESSAGE')}
             value={message}
             onChangeText={setMessage}
             containerStyle={{
@@ -188,7 +229,7 @@ export default function Index() {
         <Buttons.Colored 
           text={t('SEND')} 
           onPress={sendReport}
-          disabled={sending || !reference || (!user && !email) || (reference !== 'DELETEPROFILE' && !message)}
+          disabled={sending || !reference || (!user && !email) || (reference !== 'DELETEPROFILE' && reference !== 'REPORTPROFILE' && !message)}
         />
       </Wrapper>
     </Wrapper>
