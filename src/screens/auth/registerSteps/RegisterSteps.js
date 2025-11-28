@@ -106,8 +106,12 @@ export default function RegisterSteps() {
     }
   };
 
-  const onNameChanged = () => {
-    setNameError(false);
+  const onNameChanged = (text) => {
+    // Pattern: Only letters, numbers, and spaces (like in old app)
+    const namePattern = /^[A-Za-z0-9\s]+$/;
+    const isValid = text.length === 0 || (namePattern.test(text) && text.length >= 3 && text.length <= 20);
+    setNameError(!isValid && text.length > 0);
+    setValue('username', text);
   };
   // Prefill location via GPS if permission granted
   React.useEffect(() => {
@@ -193,6 +197,20 @@ export default function RegisterSteps() {
 
   const nextStep = async () => {
     if (activeStep < 1 && canProceed()) {
+      // Validate username before proceeding to next step
+      if (!formData.username || formData.username.trim().length === 0) {
+        Alert.alert(safeT('ERROR'), safeT('ADDUSERNAME') || 'Bitte gib einen Benutzernamen ein');
+        setNameError(true);
+        return;
+      }
+
+      const namePattern = /^[A-Za-z0-9\s]+$/;
+      if (!namePattern.test(formData.username) || formData.username.length < 3 || formData.username.length > 20) {
+        Alert.alert(safeT('ERROR'), safeT('ONLY20CHARSALLOWED') || 'Der Benutzername darf nur Buchstaben, Zahlen und Leerzeichen enthalten und muss zwischen 3 und 20 Zeichen lang sein');
+        setNameError(true);
+        return;
+      }
+
       // Validate age before proceeding to next step
       const age = calculateAge(formData.birthdate);
       if (age < 18) {
@@ -509,6 +527,20 @@ export default function RegisterSteps() {
       return nextStep();
     }
 
+    // Validate username before proceeding
+    if (!formData.username || formData.username.trim().length === 0) {
+      Alert.alert(safeT('ERROR'), safeT('ADDUSERNAME') || 'Bitte gib einen Benutzernamen ein');
+      setNameError(true);
+      return;
+    }
+
+    const namePattern = /^[A-Za-z0-9\s]+$/;
+    if (!namePattern.test(formData.username) || formData.username.length < 3 || formData.username.length > 20) {
+      Alert.alert(safeT('ERROR'), safeT('ONLY20CHARSALLOWED') || 'Der Benutzername darf nur Buchstaben, Zahlen und Leerzeichen enthalten und muss zwischen 3 und 20 Zeichen lang sein');
+      setNameError(true);
+      return;
+    }
+
     if (!canProceed()) {
       return;
     }
@@ -692,10 +724,7 @@ export default function RegisterSteps() {
                 <TextInput
                   placeholder={t('USERNAME')}
                   value={formData.username}
-                  onChangeText={(text) => {
-                    setValue('username', text);
-                    setNameError(false);
-                  }}
+                  onChangeText={onNameChanged}
                   style={{ 
                     flex: 1, 
                     fontSize: responsiveWidth(4),

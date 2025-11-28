@@ -34,6 +34,7 @@ import {Options} from './hooks';
 import {getPrivacyContent} from './privacyContent';
 import {getTermsContent} from './termsContent';
 import AccessModalContent from './AccessModalContent';
+import {version} from '../../../../package.json';
 console.log('AccessModalContent:', AccessModalContent);
 
 const MODAL_MAX_HEIGHT = Dimensions.get('window').height * 0.8;
@@ -500,6 +501,13 @@ const Index = () => {
           </Wrapper>
         </ScrollView>
       </Modals.PopupPrimary>
+      
+      {/* Version Number */}
+      <Wrapper alignItemsCenter paddingVerticalBase>
+        <Text isSmall isTextColor3 style={{opacity: 0.5}}>
+          v{version}
+        </Text>
+      </Wrapper>
     </Wrapper>
   );
 };

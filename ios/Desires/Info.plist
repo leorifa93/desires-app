@@ -12,15 +12,6 @@
 	<dict>
 		<key>CFBundleAlternateIcons</key>
 		<dict>
-			<key>standard</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>standard</string>
-				</array>
-				<key>UIPrerenderedIcon</key>
-				<true/>
-			</dict>
 			<key>cl</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
@@ -93,6 +84,15 @@
 				<key>UIPrerenderedIcon</key>
 				<true/>
 			</dict>
+			<key>standard</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>standard</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<true/>
+			</dict>
 			<key>taxi</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
@@ -155,6 +155,13 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+		<string>fr</string>
+		<string>Spanish</string>
+	</array>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -174,6 +181,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FIREBASE_ANALYTICS_COLLECTION_DEACTIVATED</key>
+	<true/>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>LSRequiresIPhoneOS</key>
@@ -185,6 +196,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app does not access your Apple Music library. This permission is required by a third-party library.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>We use the camera for taking profile photos, sharing images, and for video calls.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -197,8 +210,6 @@
 	<string>We save photos and videos to your library when you download media from chats or export content.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We use your photo library to let you select and upload photos to your profile and chat.</string>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>This app does not access your Apple Music library. This permission is required by a third-party library.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>We use tracking data to personalize the app and improve your experience. The data is shared with our partners (Google Analytics/Firebase) for analysis.</string>
 	<key>UIAppFonts</key>
@@ -212,17 +223,19 @@
 		<string>Montserrat-Medium.ttf</string>
 		<string>Montserrat-Light.ttf</string>
 	</array>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
 	</array>
-	<key>UIDeviceFamily</key>
-	<array>
-		<integer>1</integer>
-		<integer>2</integer>
-	</array>
+	<key>UIRequiresFullScreen</key>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -236,13 +249,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIRequiresFullScreen</key>
-	<false/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
-	<false/>
-	<key>FIREBASE_ANALYTICS_COLLECTION_DEACTIVATED</key>
-	<true/>
 </dict>
 </plist>

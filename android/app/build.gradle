@@ -89,8 +89,8 @@ android {
         applicationId "com.dating.desires"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20
-        versionName "1.0.7"
+        versionCode 21
+        versionName "1.1"
         missingDimensionStrategy 'store', 'play'
         
         // Support for 16 KB page sizes (required for Android 15+)

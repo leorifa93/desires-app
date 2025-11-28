@@ -51,27 +51,39 @@ export default function Index() {
     setIsLoading(true);
 
     try {
-      const now = firestore.Timestamp.now();
+      const now = Date.now();
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
-      const todayStartMillis = firestore.Timestamp.fromDate(todayStart);
+      const todayStartMillis = todayStart.getTime();
 
-      const timePeriods = {
+      // For collections that use Number timestamps (like ImageProofQueue, DeactivatedUserHistory, DeletedUserHistory)
+      const timePeriodsNumber = {
         'today': todayStartMillis,
+        '24h': now - 24 * 60 * 60 * 1000,
+        '7d': now - 7 * 24 * 60 * 60 * 1000,
+        '30d': now - 30 * 24 * 60 * 60 * 1000,
+      };
+
+      // For collections that use Firestore Timestamps (like Users)
+      const timePeriodsTimestamp = {
+        'today': firestore.Timestamp.fromDate(todayStart),
         '24h': firestore.Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000)),
         '7d': firestore.Timestamp.fromDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
         '30d': firestore.Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
       };
 
-      const selectedStartTime = selectedRange === 'total' ? null : timePeriods[selectedRange];
+      const selectedStartTimeNumber = selectedRange === 'total' ? null : (timePeriodsNumber[selectedRange] || null);
+      const selectedStartTimeTimestamp = selectedRange === 'total' ? null : (timePeriodsTimestamp[selectedRange] || null);
 
-      console.log('Loading dashboard data for range:', selectedRange, 'startTime:', selectedStartTime);
+      console.log('Loading dashboard data for range:', selectedRange, 'startTimeNumber:', selectedStartTimeNumber, 'startTimeTimestamp:', selectedStartTimeTimestamp);
 
-      const totalUsersCount = await getCount('Users', 'createdOn', selectedStartTime);
-      const signOutCountValue = await getCount('DeactivatedUserHistory', 'createdAt', selectedStartTime);
-      const deletionCountValue = await getCount('DeletedUserHistory', 'createdAt', selectedStartTime);
-      const pendingImageReviewsValue = await getCount('ImageProofQueue', 'uploadAt', selectedStartTime);
-      const salesVolumeValue = await getSalesVolume(selectedStartTime);
+      // Users uses Firestore Timestamp
+      const totalUsersCount = await getCount('Users', 'createdOn', selectedStartTimeTimestamp, 'timestamp');
+      // These collections use Number timestamps
+      const signOutCountValue = await getCount('DeactivatedUserHistory', 'createdAt', selectedStartTimeNumber, 'number');
+      const deletionCountValue = await getCount('DeletedUserHistory', 'createdAt', selectedStartTimeNumber, 'number');
+      const pendingImageReviewsValue = await getCount('ImageProofQueue', 'uploadAt', selectedStartTimeNumber, 'number');
+      const salesVolumeValue = await getSalesVolume(selectedStartTimeNumber);
 
       console.log('Dashboard data loaded:', {
         totalUsers: totalUsersCount,
@@ -101,19 +113,29 @@ export default function Index() {
     }
   };
 
-  const getCount = async (collectionName, field, startTime) => {
+  const getCount = async (collectionName, field, startTime, timeType = 'timestamp') => {
     try {
-      console.log(`Getting count for ${collectionName}, field: ${field}, startTime: ${startTime}`);
+      console.log(`Getting count for ${collectionName}, field: ${field}, startTime: ${startTime}, timeType: ${timeType}`);
       let query = firestore().collection(collectionName);
       
-      if (startTime) {
-        query = query.where(field, '>=', startTime);
-        console.log(`Added time filter: ${field} >= ${startTime}`);
-      }
-      
+      // Build query conditions
       if (collectionName === 'Users') {
-        query = query.where('status', '!=', 4);
-        console.log('Added Users status filter: status != 4');
+        // For Users collection, we need to handle both time filter and status filter
+        if (startTime) {
+          query = query.where(field, '>=', startTime).where('status', '!=', 4);
+          console.log(`Added time filter: ${field} >= ${startTime} and status != 4`);
+        } else {
+          query = query.where('status', '!=', 4);
+          console.log('Added Users status filter: status != 4 (no time filter)');
+        }
+      } else {
+        // For other collections, just add time filter if provided
+        if (startTime) {
+          // Convert Number timestamp to Firestore Timestamp if needed, or use as-is for number fields
+          const filterValue = timeType === 'number' ? startTime : startTime;
+          query = query.where(field, '>=', filterValue);
+          console.log(`Added time filter: ${field} >= ${filterValue} (type: ${timeType})`);
+        }
       }
       
       const snapshot = await query.get();
@@ -122,6 +144,7 @@ export default function Index() {
       return count;
     } catch (error) {
       console.error(`Error getting count for ${collectionName}:`, error);
+      console.error('Error details:', error.message, error.code);
       return 0;
     }
   };
@@ -132,8 +155,9 @@ export default function Index() {
       let query = firestore().collection('Wallet');
       
       if (startTime) {
+        // Wallet uses Number timestamps
         query = query.where('createdOn', '>=', startTime);
-        console.log('Added time filter: createdOn >=', startTime);
+        console.log('Added time filter: createdOn >=', startTime, '(number)');
       }
       
       query = query.where('activity', 'in', [CoinActivity.BoughtCoins, CoinActivity.Subscription]);
@@ -341,7 +365,6 @@ export default function Index() {
           </Text>
           
           {renderMenuButton(t('IMAGEPROOF'), () => show('image-proof'))}
-          {renderMenuButton(t('VERIFICATION'), () => show('verification'))}
           {renderMenuButton(t('SELLHISTORY'), () => show('sell-history'))}
           {renderMenuButton(t('ALLUSERS'), () => show('all-users'))}
           {renderMenuButton('Dexxire Chats', () => show('demo-chats'))}

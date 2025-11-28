@@ -1038,6 +1038,7 @@ export function EditProfile({ visible, toggle }) {
   const [Interests, setInterests] = useState(false);
   const [ILove, setILove] = useState(false);
   const [userData, setUserData] = useState(me || {});
+  const [nameError, setNameError] = useState(false);
   const scrollViewRef = useRef(null);
   // Removed scrollOffset state to prevent re-renders on scroll
   
@@ -2521,8 +2522,19 @@ export function EditProfile({ visible, toggle }) {
           InputLabel={t('USERNAME')}
           placeholder={me?.username || ''}
           value={userData.username || me?.username || ''}
-          onChangeText={(text) => setUserData(prev => ({ ...prev, username: text }))}
+          onChangeText={(text) => {
+            // Pattern: Only letters, numbers, and spaces (like in old app)
+            const namePattern = /^[A-Za-z0-9\s]+$/;
+            const isValid = text.length === 0 || (namePattern.test(text) && text.length >= 3 && text.length <= 20);
+            setNameError(!isValid && text.length > 0);
+            setUserData(prev => ({ ...prev, username: text }));
+          }}
         />
+        {nameError && (
+          <Wrapper marginTopSmall marginHorizontalBase>
+            <Text isSmall color={colors.appPrimaryColor}>{t('NONNAMEINFO')}</Text>
+          </Wrapper>
+        )}
         <Spacer height={responsiveHeight(6)} />
         {/* Language - multi select like old project */}
         <Wrapper marginHorizontalBase>
@@ -3022,6 +3034,20 @@ export function EditProfile({ visible, toggle }) {
 
   const saveUserData = useCallback(async () => {
     try {
+      // Validate username before saving
+      if (!userData.username || userData.username.trim().length === 0) {
+        Alert.alert(t('ERROR'), t('ADDUSERNAME') || 'Bitte gib einen Benutzernamen ein');
+        setNameError(true);
+        return;
+      }
+
+      const namePattern = /^[A-Za-z0-9\s]+$/;
+      if (!namePattern.test(userData.username) || userData.username.length < 3 || userData.username.length > 20) {
+        Alert.alert(t('ERROR'), t('ONLY20CHARSALLOWED') || 'Der Benutzername darf nur Buchstaben, Zahlen und Leerzeichen enthalten und muss zwischen 3 und 20 Zeichen lang sein');
+        setNameError(true);
+        return;
+      }
+
       // Only apply non-undefined values from userData to preserve me's properties
       const userToSave = { ...me }; // Start with complete current user
       
